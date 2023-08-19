@@ -4,17 +4,14 @@ import org.apache.logging.log4j.Logger;
 import org.skytemple.altaria.Utils;
 import org.skytemple.altaria.exceptions.FatalErrorException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Class used to connect to the bot's database
  */
 public class Database {
-	// Seconds to wait for a DB response before attempting a reconnect
-	private static final int DB_TIMEOUT = 5;
-
 	private final String host;
 	private final String port;
 	private final String user;
@@ -33,26 +30,57 @@ public class Database {
 		this.database = database;
 
 		logger = Utils.getLogger(getClass());
-		connection = null;
+		connection = connect();
 	}
 
 	/**
-	 * Gets a connection to the database. If an existing valid connection exists, it will be returned. Otherwise, a new
-	 * connection will be created.
-	 * @return Database connection
+	 * Runs a database operation that could throw an error. If it does and the error is due to the DB connection
+	 * being lost, it will attempt to reconnect if possible.
+	 * @param dbOperation The operation to run. Can be anything capable of throwing an {@link SQLException}.
+	 * @param operation A string that describes the operation performed. Used for error messages.
 	 */
-	public Connection getConnection() {
+	public void runWithReconnect(DatabaseOperation dbOperation, String operation) {
 		try {
-			if (connection == null || !connection.isValid(DB_TIMEOUT)) {
-				connection = _getConnection();
-			}
+			dbOperation.run(connection);
 		} catch (SQLException e) {
-			connection = _getConnection();
+			// TODO: Check if the connection was lost and attempt to reconnect
+			throw new FatalErrorException("Error when performing DB operation.\nOperation: " + operation, e);
 		}
-		return connection;
 	}
 
-	private Connection _getConnection() {
+	/**
+	 * Executes a simple SQL query, attempting a reconnection if required. Should not be used for queries with
+	 * parameters or that are meant to run multiple times. Use {@link PreparedStatementBuilder} for that.
+	 * @param query The query to execute
+	 * @return Query result
+	 */
+	public ResultSet queryWithReconnect(String query) {
+		AtomicReference<ResultSet> result = new AtomicReference<>();
+		runWithReconnect((_connection) -> {
+			try (Statement statement = _connection.createStatement()) {
+				result.set(statement.executeQuery(query));
+			}
+		}, query);
+		return result.get();
+	}
+
+	/**
+	 * Executes a simple SQL update query, attempting a reconnection if required. Should not be used for queries with
+	 * parameters or that are meant to run multiple times. Use {@link PreparedStatementBuilder} for that.
+	 * @param query The query to execute
+	 * @return Number of affected rows, or 0 for statements that return nothing.
+	 */
+	public int updateWithReconnect(String query) {
+		AtomicInteger result = new AtomicInteger();
+		runWithReconnect((_connection) -> {
+			try (Statement statement = _connection.createStatement()) {
+				result.set(statement.executeUpdate(query));
+			}
+		}, query);
+		return result.get();
+	}
+
+	private Connection connect() {
 		String url = "jdbc:mysql://" + host + ":" + port + "/" + database;
 		try {
 			Connection connection = DriverManager.getConnection(url, user, password);
@@ -61,5 +89,19 @@ public class Database {
 		} catch (SQLException e) {
 			throw new FatalErrorException("Database connection failed", e);
 		}
+	}
+
+	/**
+	 * Represents a database operation that might throw an {@link SQLException}, potentially due to a lost connection
+	 * with the database.
+	 */
+	@FunctionalInterface
+	public interface DatabaseOperation {
+		/**
+		 * Attempts to perform the database operation
+		 * @param connection Database connection
+		 * @throws SQLException If the operation fails for whatever reason
+		 */
+		void run(Connection connection) throws SQLException;
 	}
 }

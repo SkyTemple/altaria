@@ -6,9 +6,7 @@ import org.javacord.api.entity.intent.Intent;
 
 import org.apache.logging.log4j.Logger;
 import org.skytemple.altaria.db.Database;
-
-import java.sql.Connection;
-import java.sql.SQLException;
+import org.skytemple.altaria.db.ReputationDB;
 
 public class Main {
 
@@ -17,8 +15,12 @@ public class Main {
 
 		String token = ExtConfig.getBotToken();
 		DiscordApi api = new DiscordApiBuilder().setToken(token).addIntents(Intent.MESSAGE_CONTENT).login().join();
+		Database db = new Database(ExtConfig.getDbHost(), ExtConfig.getDbPort(), ExtConfig.getDbUsername(),
+			ExtConfig.getDbPassword(), ExtConfig.getDbDatabase());
 
 		logger.info("Bot started. Invite URL: " + api.createBotInvite());
+
+		ReputationDB reputation = new ReputationDB(db);
 
 		// Add a listener which answers with "Pong!" if someone writes "!ping"
 		api.addMessageCreateListener(event -> {
@@ -26,13 +28,5 @@ public class Main {
 				event.getChannel().sendMessage("Pong!");
 			}
 		});
-
-		// DB connection test
-		Database db = new Database(ExtConfig.getDbHost(), ExtConfig.getDbPort(), ExtConfig.getDbUsername(),
-			ExtConfig.getDbPassword(), ExtConfig.getDbDatabase());
-		Connection conn = db.getConnection();
-		try {
-			conn.close();
-		} catch (SQLException ignored) {}
 	}
 }
