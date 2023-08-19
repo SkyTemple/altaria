@@ -2,6 +2,7 @@ package org.skytemple.altaria.db;
 
 import org.apache.logging.log4j.Logger;
 import org.skytemple.altaria.Utils;
+import org.skytemple.altaria.exceptions.DbOperationException;
 import org.skytemple.altaria.exceptions.FatalErrorException;
 
 import java.sql.*;
@@ -38,13 +39,16 @@ public class Database {
 	 * being lost, it will attempt to reconnect if possible.
 	 * @param dbOperation The operation to run. Can be anything capable of throwing an {@link SQLException}.
 	 * @param operation A string that describes the operation performed. Used for error messages.
+	 * @throws DbOperationException If the operation throws an error for reasons other than a disconnect.
 	 */
-	public void runWithReconnect(DatabaseOperation dbOperation, String operation) {
+	public void runWithReconnect(DatabaseOperation dbOperation, String operation) throws DbOperationException {
 		try {
 			dbOperation.run(connection);
 		} catch (SQLException e) {
-			// TODO: Check if the connection was lost and attempt to reconnect
-			throw new FatalErrorException("Error when performing DB operation.\nOperation: " + operation, e);
+			// TODO: Check if the connection was lost and attempt to reconnect. If the reconnection fails, throw
+			//  a fatal error. If the exception was caused by something other than a reconnection, throw
+			//  DBOperationException.
+			throw new DbOperationException("Error when performing DB operation.\nOperation: " + operation, e);
 		}
 	}
 
@@ -54,7 +58,7 @@ public class Database {
 	 * @param query The query to execute
 	 * @return Query result
 	 */
-	public ResultSet queryWithReconnect(String query) {
+	public ResultSet queryWithReconnect(String query) throws DbOperationException {
 		AtomicReference<ResultSet> result = new AtomicReference<>();
 		runWithReconnect((_connection) -> {
 			try (Statement statement = _connection.createStatement()) {
@@ -70,7 +74,7 @@ public class Database {
 	 * @param query The query to execute
 	 * @return Number of affected rows, or 0 for statements that return nothing.
 	 */
-	public int updateWithReconnect(String query) {
+	public int updateWithReconnect(String query) throws DbOperationException {
 		AtomicInteger result = new AtomicInteger();
 		runWithReconnect((_connection) -> {
 			try (Statement statement = _connection.createStatement()) {
