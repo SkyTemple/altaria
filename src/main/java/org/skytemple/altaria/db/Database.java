@@ -1,7 +1,7 @@
 package org.skytemple.altaria.db;
 
 import org.apache.logging.log4j.Logger;
-import org.skytemple.altaria.Utils;
+import org.skytemple.altaria.utils.Utils;
 import org.skytemple.altaria.exceptions.DbOperationException;
 import org.skytemple.altaria.exceptions.FatalErrorException;
 

@@ -7,7 +7,7 @@ import org.javacord.api.interaction.*;
 import org.skytemple.altaria.singletons.ApiGetter;
 import org.skytemple.altaria.singletons.ErrorHandler;
 import org.skytemple.altaria.singletons.ExtConfig;
-import org.skytemple.altaria.Utils;
+import org.skytemple.altaria.utils.Utils;
 import org.skytemple.altaria.db.Database;
 import org.skytemple.altaria.db.ReputationDB;
 import org.skytemple.altaria.exceptions.DbOperationException;

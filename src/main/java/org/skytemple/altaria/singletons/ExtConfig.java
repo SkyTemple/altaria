@@ -1,7 +1,7 @@
 package org.skytemple.altaria.singletons;
 
 import org.apache.logging.log4j.Level;
-import org.skytemple.altaria.Env;
+import org.skytemple.altaria.utils.Env;
 import org.skytemple.altaria.exceptions.FatalErrorException;
 
 import java.util.Optional;

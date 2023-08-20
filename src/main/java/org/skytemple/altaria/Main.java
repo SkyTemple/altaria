@@ -9,6 +9,7 @@ import org.skytemple.altaria.db.Database;
 import org.skytemple.altaria.features.Reputation;
 import org.skytemple.altaria.singletons.ApiGetter;
 import org.skytemple.altaria.singletons.ExtConfig;
+import org.skytemple.altaria.utils.Utils;
 
 public class Main {
 

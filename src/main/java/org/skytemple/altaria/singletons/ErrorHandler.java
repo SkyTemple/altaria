@@ -3,8 +3,8 @@ package org.skytemple.altaria.singletons;
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.interaction.InteractionBase;
 import org.skytemple.altaria.Constants;
-import org.skytemple.altaria.DiscordUtils;
-import org.skytemple.altaria.Utils;
+import org.skytemple.altaria.utils.DiscordUtils;
+import org.skytemple.altaria.utils.Utils;
 
 /**
  * Class used to handle errors that take place while the bot is running. It can both log them and send them as Discord

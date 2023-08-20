@@ -1,4 +1,4 @@
-package org.skytemple.altaria;
+package org.skytemple.altaria.utils;
 
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
