@@ -29,4 +29,19 @@ public class Env {
 			return Optional.of(Integer.parseInt(valStr));
 		}
 	}
+
+	/**
+	 * Gets the specified environment variable, as a long.
+	 * @param name Name of the variable to get
+	 * @return Value of the variable. Empty if the variable is not present.
+	 * @throws NumberFormatException if the value of the variable cannot be parsed as a long.
+	 */
+	public static Optional<Long> getLong(String name) {
+		String valStr = System.getenv(name);
+		if (valStr == null) {
+			return Optional.empty();
+		} else {
+			return Optional.of(Long.parseLong(valStr));
+		}
+	}
 }
