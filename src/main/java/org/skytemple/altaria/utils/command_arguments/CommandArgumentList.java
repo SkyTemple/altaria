@@ -38,12 +38,13 @@ public class CommandArgumentList {
 	}
 
 	/**
-	 * Used to distinguish if the value of any of the requested arguments is missing due to an error or just because
-	 * the argument is optional and doesn't have a value.
-	 * @return True if any of the arguments requested resulted in an error.
+	 * Used to check if all the arguments requested were retrieved successfully.
+	 * Just checking if they are null is not enough, since that can be a valid return value under certain situarions
+	 * (such as optional arguments).
+	 * @return True if all the arguments requested were returned successfully, false if at least one caused an error.
 	 */
-	public boolean error() {
-		return _error;
+	public boolean success() {
+		return !_error;
 	}
 
 	/**
@@ -79,6 +80,30 @@ public class CommandArgumentList {
 	 */
 	public Long getLong(String argName, boolean required) {
 		return get(argName, SlashCommandInteractionOption::getLongValue, required);
+	}
+
+	/**
+	 * Convenience version of {@link #get(String, ArgumentValueGetter, boolean)} for Integer values.
+	 * Warning: Values are retrieved as a Long and then cast to an int. If the read Long value is too big to fit on
+	 * an integer, an error will be printed.
+	 */
+	public Integer getInteger(String argName, boolean required) {
+		Long valLong = get(argName, SlashCommandInteractionOption::getLongValue, required);
+		if (valLong == null) {
+			return null;
+		} else {
+			int valInt = valLong.intValue();
+			if (valInt == valLong) {
+				return valInt;
+			} else {
+				interaction.createImmediateResponder()
+					.setContent("**Error**: The specified value for argument \"" + argName + "\" is too big to " +
+						"fit in an integer.")
+					.respond();
+				_error = true;
+				return null;
+			}
+		}
 	}
 
 	/**

@@ -69,7 +69,7 @@ public class ReputationDB {
 	 * @param amount Amount of points to give
 	 */
 	public void addPoints(long userId, int amount) throws DbOperationException {
-		int result = new PreparedStatementBuilder(db, "UPDATE " + REPUTATION_TABLE_NAME + " SET points = ? " +
+		int result = new PreparedStatementBuilder(db, "UPDATE " + REPUTATION_TABLE_NAME + " SET points = points + ? " +
 			"WHERE discord_id = ?")
 			.setInt(amount)
 			.setLong(userId)

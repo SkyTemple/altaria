@@ -31,14 +31,7 @@ public class Reputation {
 		extConfig = ExtConfig.get();
 
 		// Register commands
-		SlashCommand.with("gp", "Guild point commands", Arrays.asList(
-			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check the " +
-				"amount of points a user has", Collections.singletonList(
-					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User whose GP will be checked", true)
-				)
-			),
-			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "View the full points " +
-				"leaderboard, in descending order"),
+		SlashCommand.with("gp", "Guild point management commands", Arrays.asList(
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add points to a user",
 				Arrays.asList(
 					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive the GP", true),
@@ -56,6 +49,19 @@ public class Reputation {
 		.createForServer(api, extConfig.getGuildId())
 		.join();
 
+		// Register commands
+		SlashCommand.with("getgp", "Guild point user commands", Arrays.asList(
+			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check the " +
+				"amount of points a user has", Collections.singletonList(
+					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User whose GP will be checked", true)
+				)
+			),
+			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "View the full points " +
+				"leaderboard, in descending order")
+		))
+		.createForServer(api, extConfig.getGuildId())
+		.join();
+
 		// Register listeners
 		api.addSlashCommandCreateListener(this::handleGpCommand);
 	}
@@ -65,12 +71,47 @@ public class Reputation {
 		String[] command = interaction.getFullCommandName().split(" ");
 		Logger logger = Utils.getLogger(getClass());
 		logger.debug("Command received: " + interaction.getFullCommandName());
+		CommandArgumentList arguments = new CommandArgumentList(interaction, interaction);
+
 		if (command[0].equals("gp")) {
+			if (command[1].equals("add") || command[1].equals("take")) {
+				User user = arguments.getCachedUser("user", true);
+				Integer amount = arguments.getInteger("amount", true);
+				if (arguments.success()) {
+					if (amount > 0) {
+						int finalAmount = command[1].equals("add") ? amount : amount * -1;
+						try {
+							rdb.addPoints(user.getId(), finalAmount);
+
+							String msg;
+							if (command[1].equals("add")) {
+								msg = "Gave " + amount + " Guild Point(s) to ";
+							} else {
+								msg = "Took " + amount + " Guild Point(s) from ";
+							}
+							interaction.createImmediateResponder()
+								.setContent(msg + "**" + user.getName() + "** (current: " +
+									rdb.getPoints(user.getId()) + ")")
+								.respond();
+						} catch (DbOperationException e) {
+							new ErrorHandler(e).defaultResponse(interaction).printToErrorChannel().run();
+						}
+					} else {
+						interaction.createImmediateResponder()
+							.setContent("Error: The amount of points must be > 0")
+							.respond();
+					}
+				}
+			} else {
+				interaction.createImmediateResponder()
+					.setContent("Error: Unrecognized GP subcommand")
+					.respond();
+			}
+		} else if (command[0].equals("getgp")) {
 			if (command[1].equals("check")) {
-				CommandArgumentList arguments = new CommandArgumentList(interaction, interaction);
 				// TODO: Should getUser be used instead? Can this cause problems?
 				User user = arguments.getCachedUser("user", true);
-				if (!arguments.error()) {
+				if (arguments.success()) {
 					try {
 						int amount = rdb.getPoints(user.getId());
 						interaction.createImmediateResponder()
@@ -80,9 +121,13 @@ public class Reputation {
 						new ErrorHandler(e).defaultResponse(interaction).printToErrorChannel().run();
 					}
 				}
-			} else {
+			} else if (command[1].equals("list")) {
 				interaction.createImmediateResponder()
 					.setContent("Not implemented yet")
+					.respond();
+			} else {
+				interaction.createImmediateResponder()
+					.setContent("Error: Unrecognized GP subcommand")
 					.respond();
 			}
 		}
