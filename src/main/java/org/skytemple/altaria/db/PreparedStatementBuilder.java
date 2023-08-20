@@ -39,6 +39,12 @@ public class PreparedStatementBuilder {
 		return this;
 	}
 
+	public PreparedStatementBuilder setLong(Long value) throws DbOperationException {
+		db.runWithReconnect((connection) -> statement.setLong(nextParamIndex, value), "Set long: " + value);
+		nextParamIndex++;
+		return this;
+	}
+
 	public ResultSet executeQuery() throws DbOperationException {
 		AtomicReference<ResultSet> result = new AtomicReference<>();
 		db.runWithReconnect((connection) -> result.set(statement.executeQuery()), sqlStatement);

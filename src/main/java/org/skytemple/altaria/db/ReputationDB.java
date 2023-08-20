@@ -34,10 +34,10 @@ public class ReputationDB {
 	 * @param userId User to check
 	 * @return User points
 	 */
-	public int getPoints(int userId) throws DbOperationException {
+	public int getPoints(long userId) throws DbOperationException {
 		try (ResultSet result = new PreparedStatementBuilder(db, "SELECT IFNULL((SELECT points FROM " +
 			REPUTATION_TABLE_NAME + " " + "WHERE discord_id = ?), 0)")
-			.setInt(userId)
+			.setLong(userId)
 			.executeQuery()) {
 			return result.getInt(1);
 		} catch (SQLException e) {
@@ -54,7 +54,7 @@ public class ReputationDB {
 		try (ResultSet result = db.queryWithReconnect("(SELECT discord_id, points FROM " + REPUTATION_TABLE_NAME +
 			" ORDER BY points DESC")) {
 			while (result.next()) {
-				res.add(new PointsEntry(result.getInt(1), result.getInt(2)));
+				res.add(new PointsEntry(result.getLong(1), result.getInt(2)));
 			}
 		} catch (SQLException e) {
 			throw new DbOperationException("Error closing ResultSet.", e);
@@ -67,16 +67,16 @@ public class ReputationDB {
 	 * @param userId ID of the user to give the points to
 	 * @param amount Amount of points to give
 	 */
-	public void addPoints(int userId, int amount) throws DbOperationException {
+	public void addPoints(long userId, int amount) throws DbOperationException {
 		int result = new PreparedStatementBuilder(db, "UPDATE " + REPUTATION_TABLE_NAME + " SET points = ? " +
 			"WHERE discord_id = ?")
 			.setInt(amount)
-			.setInt(userId)
+			.setLong(userId)
 			.executeUpdate();
 		if (result == 0) {
 			new PreparedStatementBuilder(db, "INSERT INTO " + REPUTATION_TABLE_NAME + "(discord_id, points) " +
 				"VALUES(?, ?)")
-				.setInt(userId)
+				.setLong(userId)
 				.setInt(amount)
 				.executeUpdate();
 		}
@@ -85,5 +85,5 @@ public class ReputationDB {
 	/**
 	 * Used to return a pair of user ID and points amount
 	 */
-	public record PointsEntry(int userId, int points) {}
+	public record PointsEntry(long userId, int points) {}
 }
