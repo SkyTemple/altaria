@@ -2,6 +2,7 @@ package org.skytemple.altaria.features;
 
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
+import org.javacord.api.entity.user.User;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.interaction.*;
 import org.skytemple.altaria.singletons.ApiGetter;
@@ -11,6 +12,7 @@ import org.skytemple.altaria.utils.Utils;
 import org.skytemple.altaria.db.Database;
 import org.skytemple.altaria.db.ReputationDB;
 import org.skytemple.altaria.exceptions.DbOperationException;
+import org.skytemple.altaria.utils.command_arguments.CommandArgumentList;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,22 +67,19 @@ public class Reputation {
 		logger.debug("Command received: " + interaction.getFullCommandName());
 		if (command[0].equals("gp")) {
 			if (command[1].equals("check")) {
-				interaction.getArgumentByName("user").ifPresentOrElse((action) -> {
-					action.getUserValue().ifPresentOrElse((user) -> {
-						try {
-							int amount = rdb.getPoints(user.getId());
-							interaction.createImmediateResponder()
-								.setContent("**" + user.getName() + "** has " + amount + " Guild Point(s)")
-								.respond();
-						} catch (DbOperationException e) {
-							new ErrorHandler(e).defaultResponse(interaction).printToErrorChannel().run();
-						}
-					}, () -> interaction.createImmediateResponder()
-						.setContent("**Error**: Missing \"user\" argument value")
-						.respond());
-				}, () -> interaction.createImmediateResponder()
-					.setContent("**Error**: Missing \"user\" argument")
-					.respond());
+				CommandArgumentList arguments = new CommandArgumentList(interaction, interaction);
+				// TODO: Should getUser be used instead? Can this cause problems?
+				User user = arguments.getCachedUser("user", true);
+				if (!arguments.error()) {
+					try {
+						int amount = rdb.getPoints(user.getId());
+						interaction.createImmediateResponder()
+							.setContent("**" + user.getName() + "** has " + amount + " Guild Point(s)")
+							.respond();
+					} catch (DbOperationException e) {
+						new ErrorHandler(e).defaultResponse(interaction).printToErrorChannel().run();
+					}
+				}
 			} else {
 				interaction.createImmediateResponder()
 					.setContent("Not implemented yet")
