@@ -39,6 +39,7 @@ public class ReputationDB {
 			REPUTATION_TABLE_NAME + " " + "WHERE discord_id = ?), 0)")
 			.setLong(userId)
 			.executeQuery()) {
+			result.next();
 			return result.getInt(1);
 		} catch (SQLException e) {
 			throw new DbOperationException("Error closing ResultSet.", e);
