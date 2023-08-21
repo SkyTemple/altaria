@@ -2,7 +2,7 @@ package org.skytemple.altaria.definitions;
 
 import org.apache.logging.log4j.Logger;
 import org.skytemple.altaria.definitions.senders.ChannelMsgSender;
-import org.skytemple.altaria.definitions.senders.FeedbackSender;
+import org.skytemple.altaria.definitions.senders.MessageSender;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.utils.Utils;
 
@@ -18,7 +18,7 @@ public class ErrorHandler {
 
 	private String responseMsg;
 	private Long printToChannelId;
-	private FeedbackSender feedbackSender;
+	private MessageSender sender;
 
 	/**
 	 * Prepares a chain of calls used to log the specified error, optionally printing different information.
@@ -30,43 +30,43 @@ public class ErrorHandler {
 
 		responseMsg = null;
 		printToChannelId = null;
-		feedbackSender = null;
+		sender = null;
 	}
 
 	/**
-	 * Sends a default error message using the specified feedback sender.
-	 * Cannot be combined with other FeedbackSender methods, only the last one will be run.
+	 * Sends a default error message using the specified message sender.
+	 * Cannot be combined with other MessageSender methods, only the last one will be run.
 	 * @param sender Sender used to send the message
 	 * @return this
 	 */
-	public ErrorHandler sendDefaultMessage(FeedbackSender sender) {
+	public ErrorHandler sendDefaultMessage(MessageSender sender) {
 		responseMsg = DEFAULT_ERROR_MESSAGE;
-		feedbackSender = sender;
+		this.sender = sender;
 		return this;
 	}
 
 	/**
-	 * Sends a custom message using the specified feedback sender.
-	 * Cannot be combined with other FeedbackSender methods, only the last one will be run.
+	 * Sends a custom message using the specified message sender.
+	 * Cannot be combined with other MessageSender methods, only the last one will be run.
 	 * @param msg Response message
 	 * @param sender Sender used to send the message
 	 * @return this
 	 */
-	public ErrorHandler sendMessage(String msg, FeedbackSender sender) {
+	public ErrorHandler sendMessage(String msg, MessageSender sender) {
 		responseMsg = msg;
-		feedbackSender = sender;
+		this.sender = sender;
 		return this;
 	}
 
 	/**
-	 * Sends the full error message using the specified feedback sender.
-	 * Cannot be combined with other FeedbackSender methods, only the last one will be run.
+	 * Sends the full error message using the specified message sender.
+	 * Cannot be combined with other MessageSender methods, only the last one will be run.
 	 * @param sender Sender used to send the message
 	 * @return this
 	 */
-	public ErrorHandler sendFullError(FeedbackSender sender) {
+	public ErrorHandler sendFullError(MessageSender sender) {
 		responseMsg = getDiscordFormattedError(error);
-		feedbackSender = sender;
+		this.sender = sender;
 		return this;
 	}
 
@@ -85,7 +85,7 @@ public class ErrorHandler {
 	public void run() {
 		logger.error(error);
 		if (responseMsg != null) {
-			feedbackSender.error(responseMsg);
+			sender.send(responseMsg);
 		}
 		if (printToChannelId != null) {
 			new ChannelMsgSender(printToChannelId).send(getDiscordFormattedError(error));
