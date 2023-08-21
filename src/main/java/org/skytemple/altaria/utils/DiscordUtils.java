@@ -1,9 +1,7 @@
 package org.skytemple.altaria.utils;
 
 import org.apache.logging.log4j.Logger;
-import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.Channel;
-import org.skytemple.altaria.definitions.singletons.ApiGetter;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -11,32 +9,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * Convenience methods for operations with the Discord API
  */
 public class DiscordUtils {
-	/**
-	 * Given a message an the ID of a channel, sends the message to that channel.
-	 * The channel must be a text channel, must be viewable by the bot, and the bot must have permission to send
-	 * messages there.
-	 * @param msg Message to send
-	 * @param channelId Channel where the message should be sent
-	 */
-	public static void sendMessage(String msg, long channelId) {
-		DiscordApi api = ApiGetter.get();
-		Logger logger = Utils.getLogger(DiscordUtils.class);
-
-		api.getChannelById(channelId).ifPresentOrElse(channel -> {
-			channel.asTextChannel().ifPresentOrElse(textChannel -> {
-				textChannel.sendMessage(msg).exceptionally(error -> {
-					logger.warn("Failed to send message in channel " + getFormattedName(channel) + ". Error:\n " +
-						Utils.throwableToStr(error));
-					return null;
-				});
-			}, () -> {
-				logger.warn("Channel " + getFormattedName(channel) + " is not a text channel");
-			});
-		}, () -> {
-			logger.warn("Channel " + channelId + " does not exist");
-		});
-	}
-
 	/**
 	 * Returns the formatted name of a channel. The resulting string will specify the name of the channel and
 	 * the server it's contained in. If the channel is a DM, it will specify the name of the recipient.

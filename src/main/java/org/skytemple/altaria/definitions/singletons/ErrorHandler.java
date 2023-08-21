@@ -1,9 +1,9 @@
 package org.skytemple.altaria.definitions.singletons;
 
 import org.apache.logging.log4j.Logger;
-import org.javacord.api.interaction.InteractionBase;
 import org.skytemple.altaria.definitions.Constants;
-import org.skytemple.altaria.utils.DiscordUtils;
+import org.skytemple.altaria.definitions.message_sender.ChannelMsgSender;
+import org.skytemple.altaria.utils.FeedbackSender;
 import org.skytemple.altaria.utils.Utils;
 
 /**
@@ -18,7 +18,7 @@ public class ErrorHandler {
 
 	private String responseMsg;
 	private Long printToChannelId;
-	private InteractionBase interaction;
+	private FeedbackSender feedbackSender;
 
 	/**
 	 * Prepares a chain of calls used to log the specified error, optionally printing different information.
@@ -30,43 +30,43 @@ public class ErrorHandler {
 
 		responseMsg = null;
 		printToChannelId = null;
-		interaction = null;
+		feedbackSender = null;
 	}
 
 	/**
-	 * Responds to the interaction that caused the error with the specified message.
-	 * Cannot be combined with other interaction response methods, only the last one will be run.
-	 * @param msg Response message
-	 * @param interaction Interaction to use to respond
+	 * Sends a default error message using the specified feedback sender.
+	 * Cannot be combined with other FeedbackSender methods, only the last one will be run.
+	 * @param sender Sender used to send the message
 	 * @return this
 	 */
-	public ErrorHandler response(String msg, InteractionBase interaction) {
-		responseMsg = msg;
-		this.interaction = interaction;
-		return this;
-	}
-
-	/**
-	 * Responds to the interaction that caused the error with a default error message.
-	 * Cannot be combined with other interaction response methods, only the last one will be run.
-	 * @param interaction Interaction to use to respond
-	 * @return this
-	 */
-	public ErrorHandler defaultResponse(InteractionBase interaction) {
+	public ErrorHandler sendDefaultMessage(FeedbackSender sender) {
 		responseMsg = DEFAULT_ERROR_MESSAGE;
-		this.interaction = interaction;
+		feedbackSender = sender;
 		return this;
 	}
 
 	/**
-	 * Responds to the interaction that caused the error with the full error message.
-	 * Cannot be combined with other interaction response methods, only the last one will be run.
-	 * @param interaction Interaction to use to respond
+	 * Sends a custom message using the specified feedback sender.
+	 * Cannot be combined with other FeedbackSender methods, only the last one will be run.
+	 * @param msg Response message
+	 * @param sender Sender used to send the message
 	 * @return this
 	 */
-	public ErrorHandler printErrorAsResponse(InteractionBase interaction) {
+	public ErrorHandler sendMessage(String msg, FeedbackSender sender) {
+		responseMsg = msg;
+		feedbackSender = sender;
+		return this;
+	}
+
+	/**
+	 * Sends the full error message using the specified feedback sender.
+	 * Cannot be combined with other FeedbackSender methods, only the last one will be run.
+	 * @param sender Sender used to send the message
+	 * @return this
+	 */
+	public ErrorHandler sendFullError(FeedbackSender sender) {
 		responseMsg = getDiscordFormattedError(error);
-		this.interaction = interaction;
+		feedbackSender = sender;
 		return this;
 	}
 
@@ -85,14 +85,11 @@ public class ErrorHandler {
 	public void run() {
 		logger.error(error);
 		if (responseMsg != null) {
-			interaction.createImmediateResponder()
-				.setContent(responseMsg)
-				.respond();
+			feedbackSender.error(responseMsg);
 		}
 		if (printToChannelId != null) {
-			DiscordUtils.sendMessage(getDiscordFormattedError(error), printToChannelId);
+			new ChannelMsgSender(printToChannelId).send(getDiscordFormattedError(error));
 		}
-
 	}
 
 	/**

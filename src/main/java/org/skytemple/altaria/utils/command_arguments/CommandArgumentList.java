@@ -5,9 +5,9 @@ import org.javacord.api.entity.Mentionable;
 import org.javacord.api.entity.channel.Channel;
 import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.user.User;
-import org.javacord.api.interaction.InteractionBase;
 import org.javacord.api.interaction.SlashCommandInteractionOption;
 import org.javacord.api.interaction.SlashCommandInteractionOptionsProvider;
+import org.skytemple.altaria.definitions.message_sender.MessageSender;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -18,23 +18,20 @@ import java.util.concurrent.atomic.AtomicReference;
  * and potential error situations.
  */
 public class CommandArgumentList {
-	private SlashCommandInteractionOptionsProvider command;
-	/*
-		Used to print errors. This should probably be an interface that takes a string and whatever it received when
-		it was instantiated and prints the error, but for now we don't use other objects for this, so it's ok.
-	 */
-	private InteractionBase interaction;
+	private final SlashCommandInteractionOptionsProvider command;
+	// Used to print errors
+	private final MessageSender errorMsgSender;
 	// Set to true after unsuccessfully trying to get the value of an argument
 	private boolean _error;
 
 	/**
 	 * Creates an instance of the class
 	 * @param command Command that contains the argument that will be accessed through this class
-	 * @param interaction Iteraction used to send error messages
+	 * @param errorMsgSender Object used to send error messages
 	 */
-	public CommandArgumentList(SlashCommandInteractionOptionsProvider command, InteractionBase interaction) {
+	public CommandArgumentList(SlashCommandInteractionOptionsProvider command, MessageSender errorMsgSender) {
 		this.command = command;
-		this.interaction = interaction;
+		this.errorMsgSender = errorMsgSender;
 	}
 
 	/**
@@ -96,10 +93,8 @@ public class CommandArgumentList {
 			if (valInt == valLong) {
 				return valInt;
 			} else {
-				interaction.createImmediateResponder()
-					.setContent("**Error**: The specified value for argument \"" + argName + "\" is too big to " +
-						"fit in an integer.")
-					.respond();
+				errorMsgSender.send("**Error**: The specified value for argument \"" + argName + "\" is too big to " +
+					"fit in an integer.");
 				_error = true;
 				return null;
 			}
@@ -183,9 +178,7 @@ public class CommandArgumentList {
 		AtomicReference<SlashCommandInteractionOption> result = new AtomicReference<>();
 
 		command.getArgumentByName(argumentName).ifPresentOrElse(result::set, () -> {
-				interaction.createImmediateResponder()
-					.setContent("**Error**: Missing \"" + argumentName + "\" argument")
-					.respond();
+				errorMsgSender.send("**Error**: Missing \"" + argumentName + "\" argument");
 				result.set(null);
 			}
 		);
@@ -212,9 +205,7 @@ public class CommandArgumentList {
 				Either the argument is required but doesn't have a value or we couldn't get the value, but the argument+
 				does hold a value in it (in that case, the specified getter was probably incorrect). This is an error.
 			 */
-			interaction.createImmediateResponder()
-				.setContent("**Error**: Couldn't get value for argument \"" + argument.getName() + "\".")
-				.respond();
+			errorMsgSender.send("**Error**: Couldn't get value for argument \"" + argument.getName() + "\".");
 			_error = true;
 			return null;
 		} else {
