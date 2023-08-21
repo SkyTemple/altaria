@@ -49,6 +49,7 @@ public class Leaderboard {
 
 	/**
 	 * Gets part of the leaderboard and formats it as a string.
+	 * The users will be listed as mentions.
 	 * If the requested page is out of bounds, throws {@link IllegalArgumentException}.
 	 * @param pageNumber Page number to get (0-indexed). Can be negative to get a page from the bottom of the
 	 *                   leaderboard.

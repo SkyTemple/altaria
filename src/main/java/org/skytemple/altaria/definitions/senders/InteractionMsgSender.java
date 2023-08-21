@@ -1,5 +1,6 @@
 package org.skytemple.altaria.definitions.senders;
 
+import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.interaction.InteractionBase;
 
 /**
@@ -18,5 +19,9 @@ public class InteractionMsgSender implements MessageSender {
 	@Override
 	public void send(String message) {
 		interaction.createImmediateResponder().setContent(message).respond();
+	}
+
+	public void sendEmbed(EmbedBuilder embed) {
+		interaction.createImmediateResponder().addEmbed(embed).respond();
 	}
 }

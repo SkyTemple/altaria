@@ -1,11 +1,13 @@
 package org.skytemple.altaria.features.reputation;
 
+import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.skytemple.altaria.definitions.Command;
 import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.definitions.senders.MessageSender;
 
+import java.awt.*;
 import java.util.List;
 
 public class ListGpCommand implements Command {
@@ -69,8 +71,13 @@ public class ListGpCommand implements Command {
 		int numPages = leaderboard.getNumPages();
 
 		try {
-			resultSender.send("Leaderboard - Page " + displayPage + "/" + numPages + ":\n\n" +
-				leaderboard.getPage(page));
+			// Send the result in an embed to avoid pinging anyone
+			EmbedBuilder embed = new EmbedBuilder()
+				.setTitle("Guild Points leaderboard")
+				.setDescription(leaderboard.getPage(page))
+				.setFooter("Page " + displayPage + "/" + numPages)
+				.setColor(Color.YELLOW);
+			resultSender.sendEmbed(embed);
 		} catch (IllegalArgumentException e) {
 			errorSender.send("Page number out of bounds. Maximum page: " + numPages + ".");
 		}
