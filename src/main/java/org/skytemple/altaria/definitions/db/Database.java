@@ -61,9 +61,9 @@ public class Database {
 	public ResultSet queryWithReconnect(String query) throws DbOperationException {
 		AtomicReference<ResultSet> result = new AtomicReference<>();
 		runWithReconnect((_connection) -> {
-			try (Statement statement = _connection.createStatement()) {
-				result.set(statement.executeQuery(query));
-			}
+			Statement statement = _connection.createStatement();
+			statement.closeOnCompletion();
+			result.set(statement.executeQuery(query));
 		}, query);
 		return result.get();
 	}

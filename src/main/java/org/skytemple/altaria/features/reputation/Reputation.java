@@ -24,10 +24,14 @@ public class Reputation {
 	private final ReputationDB rdb;
 	private final ExtConfig extConfig;
 
+	// Used to prevent duplicated queries to the database. Gets invalidated when a GP-changing command is run.
+	private Leaderboard cachedLeaderboard;
+
 	public Reputation(Database db) {
 		api = ApiGetter.get();
 		rdb = new ReputationDB(db);
 		extConfig = ExtConfig.get();
+		cachedLeaderboard = null;
 
 		// Register commands
 		SlashCommand.with("gp", "Guild point management commands", Arrays.asList(
@@ -56,7 +60,10 @@ public class Reputation {
 				)
 			),
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "View the full points " +
-				"leaderboard, in descending order")
+				"leaderboard, in descending order", Collections.singletonList(
+					SlashCommandOption.create(SlashCommandOptionType.LONG, "page", "Page to retrieve. Use negative " +
+						"numbers to retrieve a page starting from the end.", true)
+				))
 		))
 		.createForServer(api, extConfig.getGuildId())
 		.join();
@@ -83,6 +90,7 @@ public class Reputation {
 					} else {
 						new TakeGpCommand(rdb, user, amount, sender, sender).run();
 					}
+					cachedLeaderboard = null;
 				}
 			} else {
 				sender.send("Error: Unrecognized GP subcommand");
@@ -95,7 +103,18 @@ public class Reputation {
 					new GetGpCommand(rdb, user, sender, sender).run();
 				}
 			} else if (command[1].equals("list")) {
-				sender.send("Not implemented yet");
+				Integer page = arguments.getInteger("page", true);
+				if (arguments.success()) {
+					// Convert page to a 0-indexed value if positive
+					page = page < 0 ? page : page - 1;
+					if (cachedLeaderboard == null) {
+						ListGpCommand listGp = new ListGpCommand(rdb, page, sender, sender);
+						listGp.run();
+						cachedLeaderboard = listGp.getLeaderboard();
+					} else {
+						new ListGpCommand(cachedLeaderboard, page, sender, sender).run();
+					}
+				}
 			} else {
 				sender.send("Error: Unrecognized GP subcommand");
 			}

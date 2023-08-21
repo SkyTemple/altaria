@@ -6,6 +6,7 @@ import org.skytemple.altaria.definitions.exceptions.FatalErrorException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class used to perform database operations on the reputation table
@@ -42,7 +43,7 @@ public class ReputationDB {
 			result.next();
 			return result.getInt(1);
 		} catch (SQLException e) {
-			throw new DbOperationException("Error closing ResultSet.", e);
+			throw new DbOperationException(e);
 		}
 	}
 
@@ -50,15 +51,15 @@ public class ReputationDB {
 	 * Gets the amount of points of all the users, sorted by amount (desc)
 	 * @return Lis of (user, points) pairs
 	 */
-	public ArrayList<PointsEntry> getPoints() throws DbOperationException {
-		ArrayList<PointsEntry> res = new ArrayList<>();
-		try (ResultSet result = db.queryWithReconnect("(SELECT discord_id, points FROM " + REPUTATION_TABLE_NAME +
+	public List<PointsEntry> getPoints() throws DbOperationException {
+		List<PointsEntry> res = new ArrayList<>();
+		try (ResultSet result = db.queryWithReconnect("SELECT discord_id, points FROM " + REPUTATION_TABLE_NAME +
 			" ORDER BY points DESC")) {
 			while (result.next()) {
 				res.add(new PointsEntry(result.getLong(1), result.getInt(2)));
 			}
 		} catch (SQLException e) {
-			throw new DbOperationException("Error closing ResultSet.", e);
+			throw new DbOperationException(e);
 		}
 		return res;
 	}
