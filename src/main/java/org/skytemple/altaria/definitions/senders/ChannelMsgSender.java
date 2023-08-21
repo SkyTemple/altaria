@@ -1,4 +1,4 @@
-package org.skytemple.altaria.definitions.message_sender;
+package org.skytemple.altaria.definitions.senders;
 
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;

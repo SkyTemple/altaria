@@ -1,9 +1,9 @@
-package org.skytemple.altaria.definitions.singletons;
+package org.skytemple.altaria.definitions;
 
 import org.apache.logging.log4j.Logger;
-import org.skytemple.altaria.definitions.Constants;
-import org.skytemple.altaria.definitions.message_sender.ChannelMsgSender;
-import org.skytemple.altaria.utils.FeedbackSender;
+import org.skytemple.altaria.definitions.senders.ChannelMsgSender;
+import org.skytemple.altaria.definitions.senders.FeedbackSender;
+import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.utils.Utils;
 
 /**

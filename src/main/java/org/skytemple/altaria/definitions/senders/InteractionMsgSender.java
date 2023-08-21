@@ -1,4 +1,4 @@
-package org.skytemple.altaria.definitions.message_sender;
+package org.skytemple.altaria.definitions.senders;
 
 import org.javacord.api.interaction.InteractionBase;
 

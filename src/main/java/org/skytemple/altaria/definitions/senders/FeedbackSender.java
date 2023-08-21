@@ -1,6 +1,4 @@
-package org.skytemple.altaria.utils;
-
-import org.skytemple.altaria.definitions.message_sender.MessageSender;
+package org.skytemple.altaria.definitions.senders;
 
 /**
  * Class used to specify if and how command feedback (result and error messages) should be sent to the user.

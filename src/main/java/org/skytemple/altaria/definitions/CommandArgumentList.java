@@ -1,4 +1,4 @@
-package org.skytemple.altaria.utils.command_arguments;
+package org.skytemple.altaria.definitions;
 
 import org.javacord.api.entity.Attachment;
 import org.javacord.api.entity.Mentionable;
@@ -7,7 +7,7 @@ import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.SlashCommandInteractionOption;
 import org.javacord.api.interaction.SlashCommandInteractionOptionsProvider;
-import org.skytemple.altaria.definitions.message_sender.MessageSender;
+import org.skytemple.altaria.definitions.senders.MessageSender;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
