@@ -1,7 +1,7 @@
-package org.skytemple.altaria.singletons;
+package org.skytemple.altaria.definitions.singletons;
 
 import org.javacord.api.DiscordApi;
-import org.skytemple.altaria.exceptions.IllegalOperationException;
+import org.skytemple.altaria.definitions.exceptions.IllegalOperationException;
 
 /**
  * Class used to store a single {@link DiscordApi} instance and retrieve it from anywhere.

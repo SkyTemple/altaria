@@ -1,4 +1,4 @@
-package org.skytemple.altaria;
+package org.skytemple.altaria.definitions;
 
 /**
  * Stores global constants

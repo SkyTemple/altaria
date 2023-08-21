@@ -1,4 +1,4 @@
-package org.skytemple.altaria.exceptions;
+package org.skytemple.altaria.definitions.exceptions;
 
 /**
  * Thrown when a database operation fails for reasons other than a lost connection

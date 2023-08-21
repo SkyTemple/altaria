@@ -1,8 +1,8 @@
-package org.skytemple.altaria.singletons;
+package org.skytemple.altaria.definitions.singletons;
 
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.interaction.InteractionBase;
-import org.skytemple.altaria.Constants;
+import org.skytemple.altaria.definitions.Constants;
 import org.skytemple.altaria.utils.DiscordUtils;
 import org.skytemple.altaria.utils.Utils;
 

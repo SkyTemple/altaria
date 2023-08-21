@@ -1,8 +1,8 @@
-package org.skytemple.altaria.singletons;
+package org.skytemple.altaria.definitions.singletons;
 
 import org.apache.logging.log4j.Level;
 import org.skytemple.altaria.utils.Env;
-import org.skytemple.altaria.exceptions.FatalErrorException;
+import org.skytemple.altaria.definitions.exceptions.FatalErrorException;
 
 import java.util.Optional;
 

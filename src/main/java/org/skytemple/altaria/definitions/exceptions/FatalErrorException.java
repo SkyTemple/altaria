@@ -1,4 +1,4 @@
-package org.skytemple.altaria.exceptions;
+package org.skytemple.altaria.definitions.exceptions;
 
 /**
  * Thrown whenever the bot runs into an error situation in which it cannot keep running

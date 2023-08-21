@@ -1,7 +1,7 @@
-package org.skytemple.altaria.db;
+package org.skytemple.altaria.definitions.db;
 
-import org.skytemple.altaria.exceptions.DbOperationException;
-import org.skytemple.altaria.exceptions.FatalErrorException;
+import org.skytemple.altaria.definitions.exceptions.DbOperationException;
+import org.skytemple.altaria.definitions.exceptions.FatalErrorException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

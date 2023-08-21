@@ -1,4 +1,4 @@
-package org.skytemple.altaria.exceptions;
+package org.skytemple.altaria.definitions.exceptions;
 
 /**
  * Thrown when an attempted operation is invalid given the current situation.

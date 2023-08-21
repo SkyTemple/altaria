@@ -3,7 +3,7 @@ package org.skytemple.altaria.utils;
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.Channel;
-import org.skytemple.altaria.singletons.ApiGetter;
+import org.skytemple.altaria.definitions.singletons.ApiGetter;
 
 import java.util.concurrent.atomic.AtomicReference;
 
