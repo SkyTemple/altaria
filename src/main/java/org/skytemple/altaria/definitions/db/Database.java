@@ -1,5 +1,6 @@
 package org.skytemple.altaria.definitions.db;
 
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 import org.apache.logging.log4j.Logger;
 import org.skytemple.altaria.utils.Utils;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
@@ -13,6 +14,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * Class used to connect to the bot's database
  */
 public class Database {
+	// Amount of seconds to wait before determining that a database connection has been lost
+	private static final int DB_PING_TIMEOUT = 2;
+
 	private final String host;
 	private final String port;
 	private final String user;
@@ -31,23 +35,37 @@ public class Database {
 		this.database = database;
 
 		logger = Utils.getLogger(getClass());
-		connection = connect();
+		try {
+			connection = connect();
+		} catch (DbOperationException e) {
+			throw new FatalErrorException(e);
+		}
 	}
 
 	/**
 	 * Runs a database operation that could throw an error. If it does and the error is due to the DB connection
 	 * being lost, it will attempt to reconnect if possible.
+	 * <br><b>Note</b>: Some operations will not fail immediately if the connection has been lost (for example,
+	 * {@link Connection#prepareStatement(String)}), but will throw an error later on, even if a reconnect is performed.
+	 * In those cases, it's convenient to run {@link #ensureConnection()} first to check if a reconnection is necessary.
 	 * @param dbOperation The operation to run. Can be anything capable of throwing an {@link SQLException}.
 	 * @param operation A string that describes the operation performed. Used for error messages.
-	 * @throws DbOperationException If the operation throws an error for reasons other than a disconnect.
+	 * @throws DbOperationException If the operation throws an error for reasons other than a disconnect, if the
+	 * reconnect attempt fails or if the operation throws an error after a successful reconnection.
 	 */
 	public void runWithReconnect(DatabaseOperation dbOperation, String operation) throws DbOperationException {
 		try {
 			dbOperation.run(connection);
+		} catch (CommunicationsException e) {
+			// DB connection lost, reconnect and try again
+			logger.warn("Database connection lost. Attempting to reconnect.");
+			connection = connect();
+			try {
+				dbOperation.run(connection);
+			} catch (SQLException e2) {
+				throw new DbOperationException("Error when retrying DB operation.\nOperation: " + operation, e2);
+			}
 		} catch (SQLException e) {
-			// TODO: Check if the connection was lost and attempt to reconnect. If the reconnection fails, throw
-			//  a fatal error. If the exception was caused by something other than a reconnection, throw
-			//  DBOperationException.
 			throw new DbOperationException("Error when performing DB operation.\nOperation: " + operation, e);
 		}
 	}
@@ -84,14 +102,31 @@ public class Database {
 		return result.get();
 	}
 
-	private Connection connect() {
+	/**
+	 * Checks if the database connection has been lost and reconnects if that's the case.
+	 * @throws DbOperationException If the reconnect attempt fails
+	 */
+	public void ensureConnection() throws DbOperationException {
+		boolean fail;
+		try {
+			fail = !connection.isValid(DB_PING_TIMEOUT);
+		} catch (SQLException e) {
+			fail = true;
+		}
+		if (fail) {
+			logger.warn("Database ping failed. Attempting to reconnect.");
+			connection = connect();
+		}
+	}
+
+	private Connection connect() throws DbOperationException {
 		String url = "jdbc:mysql://" + host + ":" + port + "/" + database;
 		try {
 			Connection connection = DriverManager.getConnection(url, user, password);
-			logger.debug("Database connection successful");
+			logger.info("Database connection successful");
 			return connection;
 		} catch (SQLException e) {
-			throw new FatalErrorException("Database connection failed", e);
+			throw new DbOperationException("Database connection failed", e);
 		}
 	}
 

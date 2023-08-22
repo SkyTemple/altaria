@@ -23,6 +23,12 @@ public class PreparedStatementBuilder {
 		this.db = db;
 		this.sqlStatement = sqlStatement;
 		nextParamIndex = 1;
+		/*
+			If the connection has been lost, this operation won't cause an error, but an exception will be thrown when
+			trying to execute the statement later because the reference to the statement will be outdated.
+			To avoid this, we check if a reconnection is necessary now.
+		 */
+		db.ensureConnection();
 		db.runWithReconnect((connection) -> statement = connection.prepareStatement(sqlStatement),
 			"Prepare " + sqlStatement);
 	}
