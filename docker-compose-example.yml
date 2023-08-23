@@ -1,0 +1,25 @@
+version: '3'
+services:
+  swablu:
+    build: .
+    environment:
+      BOT_TOKEN: "..."
+      LOG_LEVEL: "INFO"
+      GUILD_ID: "..."
+      ERROR_CHANNEL_ID: "..."
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: "root"
+      DB_PASSWORD: "altaria"
+      DB_DATABASE: "altaria"
+    depends_on:
+      - db
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "altaria"
+      MYSQL_DATABASE: "altaria"
+    volumes:
+      - "./db_data:/var/lib/mysql"
