@@ -4,7 +4,6 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.skytemple.altaria.Main;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 
 import java.io.PrintWriter;
@@ -19,7 +18,7 @@ public class Utils {
 	 * @return Logger
 	 */
 	public static Logger getLogger(Class<?> c, Level level) {
-		Logger logger = LogManager.getLogger(Main.class);
+		Logger logger = LogManager.getLogger(c);
 		Configurator.setLevel(logger, level);
 		return logger;
 	}

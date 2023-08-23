@@ -97,7 +97,6 @@ public class Reputation {
 			}
 		} else if (command[0].equals("getgp")) {
 			if (command[1].equals("check")) {
-				// TODO: Should getUser be used instead? Can this cause problems?
 				User user = arguments.getCachedUser("user", true);
 				if (arguments.success()) {
 					new GetGpCommand(rdb, user, sender, sender).run();
