@@ -17,6 +17,7 @@
 
 package org.skytemple.altaria.definitions.senders;
 
+import org.javacord.api.entity.message.MessageFlag;
 import org.javacord.api.entity.message.component.HighLevelComponent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.interaction.InteractionBase;
@@ -52,6 +53,15 @@ public class InteractionMsgSender extends MessageSender {
 	@Override
 	public MessageSender addComponent(HighLevelComponent component) {
 		response.addComponents(component);
+		return this;
+	}
+
+	/**
+	 * Turns the response into an ephemeral message
+	 * @return this
+	 */
+	public MessageSender setEphemeral() {
+		response.setFlags(MessageFlag.EPHEMERAL);
 		return this;
 	}
 

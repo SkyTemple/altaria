@@ -25,7 +25,7 @@ import org.skytemple.altaria.definitions.singletons.ExtConfig;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
+import java.util.*;
 
 public class Utils {
 	/**
@@ -105,5 +105,30 @@ public class Utils {
 		} else {
 			return string;
 		}
+	}
+
+	/**
+	 * Given a map, returns a new map where entries are sorted by value.
+	 * Based on <a href="https://stackoverflow.com/a/2581754">https://stackoverflow.com/a/2581754</a>.
+	 * @param map Map to sort
+	 * @param desc True to sort in descending order, false to sort in ascending order
+	 * @return New map, sorted by value
+	 * @param <K> Type of map keys
+	 * @param <V> Type of map values
+	 */
+	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map, boolean desc) {
+		List<Map.Entry<K, V>> list = new ArrayList<>(map.entrySet());
+		if (desc) {
+			list.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+		} else {
+			list.sort(Map.Entry.comparingByValue());
+		}
+
+		Map<K, V> result = new LinkedHashMap<>();
+		for (Map.Entry<K, V> entry : list) {
+			result.put(entry.getKey(), entry.getValue());
+		}
+
+		return result;
 	}
 }

@@ -19,10 +19,16 @@ package org.skytemple.altaria.features.reputation;
 
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
+import org.javacord.api.entity.message.component.ActionRow;
+import org.javacord.api.entity.message.component.Button;
+import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.user.User;
+import org.javacord.api.event.interaction.MessageComponentCreateEvent;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.interaction.*;
+import org.skytemple.altaria.definitions.ErrorHandler;
+import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.definitions.senders.ChannelMsgSender;
 import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
 import org.skytemple.altaria.definitions.senders.NullMsgSender;
@@ -34,8 +40,8 @@ import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.CommandArgumentList;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.awt.*;
+import java.util.*;
 
 /**
  * Class used to handle reputation commands and events
@@ -44,18 +50,27 @@ public class Reputation {
 	private static final long SPRITEBOT_ID = 548718661129732106L;
 	private static final long SPRITEBOT_COMMANDS_CHANNEL_ID = 822865440489472020L;
 
+	// Component IDs
+	private static final String COMPONENT_LIST_GP_CONFIRM = "listGpConfirm";
+	private static final String COMPONENT_LIST_GP_CLEAR = "listGpClear";
+
 	private final DiscordApi api;
 	private final ReputationDB rdb;
 	private final ExtConfig extConfig;
 
 	// Used to prevent duplicated queries to the database. Gets invalidated when a GP-changing command is run.
 	private Leaderboard cachedLeaderboard;
+	// Holds the multi-GP lists for the /multigp commands. There's a list for each user that used the command.
+	// Key: ID of the user that runs the command
+	// Value: Map that maps user IDs to the amount of GP they will receive.
+	private final Map<Long, Map<Long, Integer>> multiGpLists;
 
 	public Reputation(Database db) {
 		api = ApiGetter.get();
 		rdb = new ReputationDB(db);
 		extConfig = ExtConfig.get();
 		cachedLeaderboard = null;
+		multiGpLists = new TreeMap<>();
 
 		// Register commands
 		SlashCommand.with("gp", "Guild point management commands", Arrays.asList(
@@ -91,8 +106,31 @@ public class Reputation {
 		.createForServer(api, extConfig.getGuildId())
 		.join();
 
+		SlashCommand.with("multigp", "Commands to give GP to multiple users at once. Run /multigp list to confirm or " +
+			"discard changes.", Arrays.asList(
+			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add or remove points " +
+				"from a user and save the result to the multi-gp list", Arrays.asList(
+					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive/lose the " +
+					"GP", true),
+					SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give/take", true)
+				)
+			),
+			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "clear", "Remove an user from the " +
+				"multi-gp list",
+				Collections.singletonList(
+					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User tp remove", true)
+				)
+			),
+			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "Show the current status " +
+				"of the multi-gp list")
+		))
+		.setDefaultDisabled()
+		.createForServer(api, extConfig.getGuildId())
+		.join();
+
 		// Register listeners
 		api.addSlashCommandCreateListener(this::handleGpCommand);
+		api.addMessageComponentCreateListener(this::handleMessageComponent);
 		if (extConfig.spritebotGpCommandsEnabled()) {
 			api.addMessageCreateListener(this::handleBotGpCommand);
 		}
@@ -143,6 +181,85 @@ public class Reputation {
 			} else {
 				sender.send("Error: Unrecognized GP subcommand");
 			}
+		} else if (command[0].equals("multigp")) {
+			long cmdUserId = interaction.getUser().getId();
+
+			if (command[1].equals("add")) {
+				User user = arguments.getCachedUser("user", true);
+				Integer amount = arguments.getInteger("amount", true);
+				if (arguments.success()) {
+					Map<Long, Integer> gpList = multiGpLists.getOrDefault(cmdUserId, new TreeMap<>());
+					gpList.merge(user.getId(), amount, Integer::sum);
+					multiGpLists.put(cmdUserId, gpList);
+					sender.setEphemeral().setText("Added " + amount + " GP for **" + user.getName() + "** to the " +
+						"multi-GP list. Use /multigp list to confirm or cancel the operation.").send();
+				}
+			} else if (command[1].equals("clear")) {
+				User user = arguments.getCachedUser("user", true);
+				if (arguments.success()) {
+					Map<Long, Integer> gpList = multiGpLists.get(cmdUserId);
+					if (gpList == null) {
+						sender.setEphemeral().setText("The multi-GP list is empty!").send();
+					} else {
+						gpList.remove(user.getId());
+						sender.setEphemeral().setText("**" + user.getName() + "** removed from the multi-GP list.").send();
+					}
+				}
+			} else if (command[1].equals("list")) {
+				Map<Long, Integer> gpList = multiGpLists.get(cmdUserId);
+				if (gpList == null) {
+					sender.setEphemeral().setText("The multi-GP list is empty!").send();
+				} else {
+					sender.addEmbed(multiGpListToEmbed(gpList));
+					sender.addComponent(ActionRow.of(
+						Button.success(COMPONENT_LIST_GP_CONFIRM, "Confirm"),
+						Button.danger(COMPONENT_LIST_GP_CLEAR, "Clear all")
+					));
+					sender.setEphemeral().send();
+				}
+			} else {
+				sender.send("Error: Unrecognized Multi-GP subcommand");
+			}
+		}
+	}
+
+	/**
+	 * Handles an event received through a message component
+	 * @param event Event
+	 */
+	private void handleMessageComponent(MessageComponentCreateEvent event) {
+		MessageComponentInteraction interaction = event.getMessageComponentInteraction();
+		InteractionMsgSender sender = new InteractionMsgSender(interaction);
+		String componentId = interaction.getCustomId();
+		long cmdUserId = interaction.getUser().getId();
+
+		switch (componentId) {
+			case COMPONENT_LIST_GP_CONFIRM:
+				Map<Long, Integer> gpList = multiGpLists.get(cmdUserId);
+				if (gpList == null) {
+					sender.setEphemeral().setText("The multi-GP list is empty!").send();
+				} else {
+					try {
+						EmbedBuilder gpListEmbed = multiGpListToEmbed(gpList);
+						Iterator<Map.Entry<Long, Integer>> it = gpList.entrySet().iterator();
+						while (it.hasNext()) {
+							Map.Entry<Long, Integer> entry = it.next();
+							rdb.addPoints(entry.getKey(), entry.getValue());
+							it.remove();
+						}
+						multiGpLists.remove(cmdUserId);
+						// Not ephemeral so the full list is posted somewhere
+						sender.setText("The following Guild Points have been awarded by **" +
+							interaction.getUser().getName() + "**:").addEmbed(gpListEmbed).send();
+					} catch (DbOperationException e) {
+						new ErrorHandler(e).sendDefaultMessage(sender).printToErrorChannel().run();
+					}
+				}
+				break;
+			case COMPONENT_LIST_GP_CLEAR:
+				multiGpLists.remove(cmdUserId);
+				sender.setEphemeral().setText("Cleared multi-GP list").send();
+				break;
 		}
 	}
 
@@ -194,5 +311,29 @@ public class Reputation {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Converts a GP list into an embed. Users will be sorted in descending order by amount of GP
+	 * @param gpList List to convert
+	 */
+	private EmbedBuilder multiGpListToEmbed(Map<Long, Integer> gpList) {
+		StringBuilder result = new StringBuilder();
+		Map<Long, Integer> sortedGpList = Utils.sortByValue(gpList, true);
+		boolean first = true;
+
+		for (Map.Entry<Long, Integer> entry : sortedGpList.entrySet()) {
+			if (first) {
+				first = false;
+			} else {
+				result.append("\n");
+			}
+			result.append("<@").append(entry.getKey()).append(">: ").append(entry.getValue());
+		}
+
+		return new EmbedBuilder()
+			.setTitle("Multi-GP list")
+			.setDescription(result.toString())
+			.setColor(Color.YELLOW);
 	}
 }
