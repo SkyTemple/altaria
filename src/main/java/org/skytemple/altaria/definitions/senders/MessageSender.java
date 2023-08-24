@@ -17,21 +17,44 @@
 
 package org.skytemple.altaria.definitions.senders;
 
+import org.javacord.api.entity.message.component.HighLevelComponent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 
 /**
  * Represents an object capable of sending data through Discord messages
  */
-public interface MessageSender {
+public abstract class MessageSender {
 	/**
-	 * Sends the specified message
-	 * @param message Message to send
+	 * Sets the text that will be sent alongside the message. Overwrites previously added text.
+	 * @param text Text to send
+	 * @return this
 	 */
-	void send(String message);
+	public abstract MessageSender setText(String text);
 
 	/**
-	 * Sends the specified embed
+	 * Adds an embed to the message that will be sent
 	 * @param embed Embed to send
+	 * @return this
 	 */
-	void sendEmbed(EmbedBuilder embed);
+	public abstract MessageSender addEmbed(EmbedBuilder embed);
+
+	/**
+	 * Adds a component to the message that will be sent
+	 * @param component Component to add
+	 * @return this
+	 */
+	public abstract MessageSender addComponent(HighLevelComponent component);
+
+	/**
+	 * Sends the composed message
+	 */
+	public abstract void send();
+
+	/**
+	 * Convenience method that directly sends a message
+	 */
+	public void send(String text) {
+		setText(text);
+		send();
+	}
 }

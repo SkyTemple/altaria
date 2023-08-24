@@ -17,28 +17,46 @@
 
 package org.skytemple.altaria.definitions.senders;
 
+import org.javacord.api.entity.message.component.HighLevelComponent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.interaction.InteractionBase;
+import org.javacord.api.interaction.callback.InteractionImmediateResponseBuilder;
 
 /**
  * Used to send a message in response to an interaction
  */
-public class InteractionMsgSender implements MessageSender {
+public class InteractionMsgSender extends MessageSender {
 	private final InteractionBase interaction;
+	private final InteractionImmediateResponseBuilder response;
 
 	/**
 	 * @param interaction Interaction used to send the message as an interaction response
 	 */
 	public InteractionMsgSender(InteractionBase interaction) {
 		this.interaction = interaction;
+		response = interaction.createImmediateResponder();
 	}
 
 	@Override
-	public void send(String message) {
-		interaction.createImmediateResponder().setContent(message).respond();
+	public InteractionMsgSender setText(String text) {
+		response.setContent(text);
+		return this;
 	}
 
-	public void sendEmbed(EmbedBuilder embed) {
-		interaction.createImmediateResponder().addEmbed(embed).respond();
+	@Override
+	public InteractionMsgSender addEmbed(EmbedBuilder embed) {
+		response.addEmbed(embed);
+		return this;
+	}
+
+	@Override
+	public MessageSender addComponent(HighLevelComponent component) {
+		response.addComponents(component);
+		return this;
+	}
+
+	@Override
+	public void send() {
+		response.respond();
 	}
 }

@@ -17,16 +17,29 @@
 
 package org.skytemple.altaria.definitions.senders;
 
+import org.javacord.api.entity.message.component.HighLevelComponent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 
 /**
  * Discards incoming messages without sending them anywhere.
  */
-public class NullMsgSender implements MessageSender {
+public class NullMsgSender extends MessageSender {
 
 	@Override
-	public void send(String message) {}
+	public MessageSender setText(String text) {
+		return this;
+	}
 
 	@Override
-	public void sendEmbed(EmbedBuilder embed) {}
+	public MessageSender addEmbed(EmbedBuilder embed) {
+		return this;
+	}
+
+	@Override
+	public MessageSender addComponent(HighLevelComponent component) {
+		return this;
+	}
+
+	@Override
+	public void send() {}
 }

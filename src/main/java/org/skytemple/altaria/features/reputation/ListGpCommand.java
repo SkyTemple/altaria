@@ -94,7 +94,7 @@ public class ListGpCommand implements Command {
 				.setDescription(leaderboard.getPage(page))
 				.setFooter("Page " + displayPage + "/" + numPages)
 				.setColor(Color.YELLOW);
-			resultSender.sendEmbed(embed);
+			resultSender.addEmbed(embed).send();
 		} catch (IllegalArgumentException e) {
 			errorSender.send("Page number out of bounds. Maximum page: " + numPages + ".");
 		}

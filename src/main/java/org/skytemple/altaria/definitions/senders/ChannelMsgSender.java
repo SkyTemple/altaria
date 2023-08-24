@@ -20,6 +20,8 @@ package org.skytemple.altaria.definitions.senders;
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.MessageBuilder;
+import org.javacord.api.entity.message.component.HighLevelComponent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.utils.DiscordUtils;
@@ -32,9 +34,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * The channel must be a text channel, must be viewable by the bot, and the bot must have permission to send
  * messages there.
  */
-public class ChannelMsgSender implements MessageSender {
+public class ChannelMsgSender extends MessageSender {
 	private final long channelId;
 	private final Logger logger;
+	private final MessageBuilder message;
 
 	/**
 	 * @param channelId ID of the channel where the message should be sent
@@ -42,26 +45,33 @@ public class ChannelMsgSender implements MessageSender {
 	public ChannelMsgSender(long channelId) {
 		this.channelId = channelId;
 		logger = Utils.getLogger(getClass());
+		message = new MessageBuilder();
 	}
 
 	@Override
-	public void send(String message) {
+	public ChannelMsgSender setText(String text) {
+		message.setContent(text);
+		return this;
+	}
+
+	@Override
+	public ChannelMsgSender addEmbed(EmbedBuilder embed) {
+		message.addEmbed(embed);
+		return this;
+	}
+
+	@Override
+	public MessageSender addComponent(HighLevelComponent component) {
+		message.addComponents(component);
+		return this;
+	}
+
+	@Override
+	public void send() {
 		TextChannel channel = tryGetTextChannel();
 		if (channel != null) {
-			channel.sendMessage(message).exceptionally(error -> {
+			message.send(channel).exceptionally(error -> {
 				logger.warn("Failed to send message in channel " + DiscordUtils.getFormattedName(channel) +
-					". Error:\n " + Utils.throwableToStr(error));
-				return null;
-			});
-		}
-	}
-
-	@Override
-	public void sendEmbed(EmbedBuilder embed) {
-		TextChannel channel = tryGetTextChannel();
-		if (channel != null) {
-			channel.sendMessage(embed).exceptionally(error -> {
-				logger.warn("Failed to send embed in channel " + DiscordUtils.getFormattedName(channel) +
 					". Error:\n " + Utils.throwableToStr(error));
 				return null;
 			});

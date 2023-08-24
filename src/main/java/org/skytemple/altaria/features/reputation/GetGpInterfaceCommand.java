@@ -18,7 +18,6 @@
 package org.skytemple.altaria.features.reputation;
 
 import org.javacord.api.entity.user.User;
-import org.skytemple.altaria.definitions.Command;
 import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
