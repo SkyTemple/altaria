@@ -109,20 +109,21 @@ public class Reputation {
 		SlashCommand.with("multigp", "Commands to give GP to multiple users at once. Run /multigp list to confirm or " +
 			"discard changes.", Arrays.asList(
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add or remove points " +
-				"from a user and save the result to the multi-gp list", Arrays.asList(
+				"from a user. Instead of being run immediately, the operation will be added to the multi-GP list so " +
+				"it can be batch-executed later.", Arrays.asList(
 					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive/lose the " +
 					"GP", true),
 					SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give/take", true)
 				)
 			),
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "clear", "Remove an user from the " +
-				"multi-gp list",
+				"multi-GP list",
 				Collections.singletonList(
 					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User tp remove", true)
 				)
 			),
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "Show the current status " +
-				"of the multi-gp list")
+				"of the multi-GP list, with options to confirm the operations or clear the list.")
 		))
 		.setDefaultDisabled()
 		.createForServer(api, extConfig.getGuildId())
