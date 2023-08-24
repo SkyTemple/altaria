@@ -37,6 +37,7 @@ public class ExtConfig {
 	private static final String ENV_DB_USER = "DB_USER";
 	private static final String ENV_DB_PASSWORD = "DB_PASSWORD";
 	private static final String ENV_DB_DATABASE = "DB_DATABASE";
+	private static final String ENV_SPRITEBOT_GP_COMMANDS = "SPRITEBOT_GP_COMMANDS";
 
 	private static final Level DEFAULT_LOG_LEVEL = Level.INFO;
 
@@ -51,6 +52,7 @@ public class ExtConfig {
 	private String dbUser;
 	private String dbPassword;
 	private String dbDatabase;
+	private Boolean spritebotGpCommands;
 
 	protected ExtConfig() {
 		botToken = null;
@@ -61,6 +63,7 @@ public class ExtConfig {
 		dbUser = null;
 		dbPassword = null;
 		dbDatabase = null;
+		spritebotGpCommands = null;
 	}
 
 	public static ExtConfig get() {
@@ -183,5 +186,17 @@ public class ExtConfig {
 				"specified on the " + ENV_DB_DATABASE + " environment variable."));
 		}
 		return dbDatabase;
+	}
+
+	/**
+	 * @return True if the bot should listen for SpriteBot reputation commands and respond to them
+	 */
+	public boolean spritebotGpCommandsEnabled() {
+		if (spritebotGpCommands == null) {
+			spritebotGpCommands = Env.getBoolean(ENV_SPRITEBOT_GP_COMMANDS).orElseThrow(() -> new FatalErrorException(
+				"The " + ENV_SPRITEBOT_GP_COMMANDS + " environment variable must be used to specify if responses to " +
+				"SpriteBot GP commands should be enabled."));
+		}
+		return spritebotGpCommands;
 	}
 }

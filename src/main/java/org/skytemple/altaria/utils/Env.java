@@ -17,6 +17,8 @@
 
 package org.skytemple.altaria.utils;
 
+import org.skytemple.altaria.definitions.exceptions.FatalErrorException;
+
 import java.util.Optional;
 
 /**
@@ -59,6 +61,27 @@ public class Env {
 			return Optional.empty();
 		} else {
 			return Optional.of(Long.parseLong(valStr));
+		}
+	}
+
+	/**
+	 * Gets the specified environment variable, as a boolean.
+	 * @param name Name of the variable to get
+	 * @return Value of the variable. Empty if the variable is not present.
+	 * @throws FatalErrorException if the value of the variable cannot be parsed as a boolean.
+	 */
+	public static Optional<Boolean> getBoolean(String name) {
+		String valStr = System.getenv(name);
+		if (valStr == null) {
+			return Optional.empty();
+		} else {
+			if (valStr.equals("1") || valStr.equalsIgnoreCase("true")) {
+				return Optional.of(true);
+			} else if (valStr.equals("0") || valStr.equalsIgnoreCase("false")) {
+				return Optional.of(false);
+			} else {
+				throw new FatalErrorException("Invalid boolean value for env variable \"" + name + "\": " + valStr);
+			}
 		}
 	}
 }

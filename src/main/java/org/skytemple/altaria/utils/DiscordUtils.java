@@ -19,6 +19,7 @@ package org.skytemple.altaria.utils;
 
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.entity.channel.Channel;
+import org.skytemple.altaria.definitions.senders.MessageSender;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -50,5 +51,15 @@ public class DiscordUtils {
 			});
 		});
 		return res.get();
+	}
+
+	/**
+	 * Sends a JSON message through the specified message sender with the result of a command
+	 * @param success True if the command was successful
+	 * @param resultStr Result string to include in the message
+	 */
+	public static void sendJsonResult(MessageSender sender, boolean success, String resultStr) {
+		String status = success ? "success" : "error";
+		sender.send("{\"status\": \"" + status + "\", \"result: " + resultStr + "\"}");
 	}
 }

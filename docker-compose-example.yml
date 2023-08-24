@@ -12,6 +12,7 @@ services:
       DB_USER: "root"
       DB_PASSWORD: "altaria"
       DB_DATABASE: "altaria"
+      SPRITEBOT_GP_COMMANDS: "true"
     depends_on:
       - db
   db:

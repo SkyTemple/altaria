@@ -21,10 +21,14 @@ import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
+import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.interaction.*;
+import org.skytemple.altaria.definitions.senders.ChannelMsgSender;
 import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
+import org.skytemple.altaria.definitions.senders.NullMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
+import org.skytemple.altaria.utils.DiscordUtils;
 import org.skytemple.altaria.utils.Utils;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.db.ReputationDB;
@@ -37,6 +41,9 @@ import java.util.Collections;
  * Class used to handle reputation commands and events
  */
 public class Reputation {
+	private static final long SPRITEBOT_ID = 548718661129732106L;
+	private static final long SPRITEBOT_COMMANDS_CHANNEL_ID = 822865440489472020L;
+
 	private final DiscordApi api;
 	private final ReputationDB rdb;
 	private final ExtConfig extConfig;
@@ -69,7 +76,6 @@ public class Reputation {
 		.createForServer(api, extConfig.getGuildId())
 		.join();
 
-		// Register commands
 		SlashCommand.with("getgp", "Guild point user commands", Arrays.asList(
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check the " +
 				"amount of points a user has", Collections.singletonList(
@@ -87,6 +93,9 @@ public class Reputation {
 
 		// Register listeners
 		api.addSlashCommandCreateListener(this::handleGpCommand);
+		if (extConfig.spritebotGpCommandsEnabled()) {
+			api.addMessageCreateListener(this::handleBotGpCommand);
+		}
 	}
 
 	private void handleGpCommand(SlashCommandCreateEvent event) {
@@ -133,6 +142,56 @@ public class Reputation {
 				}
 			} else {
 				sender.send("Error: Unrecognized GP subcommand");
+			}
+		}
+	}
+
+	/**
+	 * Used to handle !gr commands from SpriteBot, which cannot use slash commands.
+	 * @param event Message creation event
+	 */
+	private void handleBotGpCommand(MessageCreateEvent event) {
+		if (event.getChannel().getId() == SPRITEBOT_COMMANDS_CHANNEL_ID &&
+			event.getMessageAuthor().getId() == SPRITEBOT_ID) {
+			String[] message = event.getMessage().getContent().split(" ");
+			ChannelMsgSender privateResultSender = new ChannelMsgSender(SPRITEBOT_COMMANDS_CHANNEL_ID);
+
+			if (message[0].equals("!gr") || message[0].equals("!tr")) {
+				if (message.length == 4) {
+					try {
+						long userId = Long.parseLong(message[1]);
+						int points = Integer.parseInt(message[2]);
+						long channelId = Long.parseLong(message[3]);
+
+						User user = api.getUserById(userId).join();
+						ChannelMsgSender publicResultSender = new ChannelMsgSender(channelId);
+
+						if (message[0].equals("!gr")) {
+							new GiveGpInterfaceCommand(rdb, user, points, publicResultSender, privateResultSender,
+								new NullMsgSender()).run();
+						} else {
+							new TakeGpInterfaceCommand(rdb, user, points, publicResultSender, privateResultSender,
+								new NullMsgSender()).run();
+						}
+					} catch (NumberFormatException e) {
+						DiscordUtils.sendJsonResult(privateResultSender, false, "Cannot parse arguments as numbers");
+					}
+				} else {
+					DiscordUtils.sendJsonResult(privateResultSender, false, "Wrong number of arguments (3 required)");
+				}
+			} else if (message[0].equals("!checkr")) {
+				if (message.length == 2) {
+					try {
+						long userId = Long.parseLong(message[1]);
+						User user = api.getUserById(userId).join();
+
+						new GetGpInterfaceCommand(rdb, user, privateResultSender, new NullMsgSender()).run();
+					} catch (NumberFormatException e) {
+						DiscordUtils.sendJsonResult(privateResultSender, false, "Cannot parse argument as an ID");
+					}
+				} else {
+					DiscordUtils.sendJsonResult(privateResultSender, false, "Wrong number of arguments (1 required)");
+				}
 			}
 		}
 	}
