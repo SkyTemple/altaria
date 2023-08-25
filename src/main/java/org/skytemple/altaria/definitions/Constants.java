@@ -23,4 +23,7 @@ package org.skytemple.altaria.definitions;
 public class Constants {
 	// Maximum allowed characters for a Discord message
 	public static final int MAX_DISCORD_MSG_CHARS = 2000;
+	// Time to wait for an action to complete before aborting. Used when responding to interactions, since they
+	// currently have a maximum response time of 3 seconds.
+	public static final int ACTION_TIMEOUT = 2;
 }
