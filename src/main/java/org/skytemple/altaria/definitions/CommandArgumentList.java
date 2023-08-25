@@ -71,13 +71,11 @@ public class CommandArgumentList {
 	 * @param <T> Argument type
 	 */
 	public <T> T get(String argName, ArgumentValueGetter<T> getter, boolean required) {
-		SlashCommandInteractionOption argument = getArgument(command, argName);
+		SlashCommandInteractionOption argument = getArgument(command, argName, required);
 		if (argument != null) {
 			// Get the value of the argument
 			return getArgumentValue(argument, getter, required);
 		} else {
-			// Missing argument, this is an error for sure
-			_error = true;
 			return null;
 		}
 	}
@@ -185,17 +183,22 @@ public class CommandArgumentList {
 
 	/**
 	 * Given a command and an argument name, returns the Option object associated to it, or null if the command doesn't
-	 * have that argument. If that's the case, an error will be printed to the interaction specified when this instance
-	 * was created as well.
+	 * have that argument. If that's the case and the argument is required, an error will be printed to the interaction
+	 * specified when this instance was created as well.
 	 * @param command Command to get the argument from
 	 * @param argumentName Name of the argument
+	 * @param required True if the argument is required
 	 * @return The argument, or null if it's missing
 	 */
-	private SlashCommandInteractionOption getArgument(SlashCommandInteractionOptionsProvider command, String argumentName) {
+	private SlashCommandInteractionOption getArgument(SlashCommandInteractionOptionsProvider command,
+	String argumentName, boolean required) {
 		AtomicReference<SlashCommandInteractionOption> result = new AtomicReference<>();
 
 		command.getArgumentByName(argumentName).ifPresentOrElse(result::set, () -> {
-				errorMsgSender.send("**Error**: Missing \"" + argumentName + "\" argument");
+				if (required) {
+					errorMsgSender.send("**Error**: Missing \"" + argumentName + "\" argument");
+					_error = true;
+				}
 				result.set(null);
 			}
 		);
@@ -215,7 +218,7 @@ public class CommandArgumentList {
 	 * @param <T> Type of the argument
 	 */
 	private <T> T getArgumentValue(SlashCommandInteractionOption argument, ArgumentValueGetter<T> getter,
-								   boolean required) {
+	boolean required) {
 		Optional<T> value = getter.getValue(argument);
 		if (value.isEmpty() && (required || argument.getStringRepresentationValue().isPresent())) {
 			/*
