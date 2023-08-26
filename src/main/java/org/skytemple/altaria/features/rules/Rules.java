@@ -74,6 +74,7 @@ public class Rules {
 				SlashCommandOption.create(SlashCommandOptionType.STRING, "number", "Rule number", true)
 			))
 			.createForServer(api, extConfig.getGuildId())
+			.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
 			.join();
 
 			// Register listeners

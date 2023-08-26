@@ -24,6 +24,7 @@ import org.javacord.api.event.interaction.MessageContextMenuCommandEvent;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.interaction.*;
 import org.skytemple.altaria.definitions.CommandArgumentList;
+import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
@@ -52,11 +53,13 @@ public class ModActions {
 		))
 		.setDefaultDisabled()
 		.createForServer(api, extConfig.getGuildId())
+		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
 		.join();
 
 		MessageContextMenu.with(PIN_CONTEXT_ACTION)
 			.setDefaultDisabled()
 			.createForServer(api, extConfig.getGuildId())
+			.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
 			.join();
 
 		// Create listeners

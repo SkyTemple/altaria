@@ -89,6 +89,7 @@ public class Reputation {
 		))
 		.setDefaultDisabled()
 		.createForServer(api, extConfig.getGuildId())
+		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
 		.join();
 
 		SlashCommand.with("getgp", "Guild point user commands", Arrays.asList(
@@ -104,6 +105,7 @@ public class Reputation {
 				))
 		))
 		.createForServer(api, extConfig.getGuildId())
+		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
 		.join();
 
 		SlashCommand.with("multigp", "Commands to give GP to multiple users at once. Run /multigp list to confirm or " +
@@ -126,6 +128,7 @@ public class Reputation {
 		))
 		.setDefaultDisabled()
 		.createForServer(api, extConfig.getGuildId())
+		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
 		.join();
 
 		// Register listeners
