@@ -3,16 +3,26 @@ services:
   altaria:
     build: .
     environment:
+      # Discord bot token
       BOT_TOKEN: "..."
+      # Logging level
       LOG_LEVEL: "INFO"
+      # ID of the guild where the bot is going to be run
       GUILD_ID: "..."
+      # Channel where full errors should be posted
       ERROR_CHANNEL_ID: "..."
+      # Database connection data
       DB_HOST: db
       DB_PORT: 3306
       DB_USER: "root"
       DB_PASSWORD: "altaria"
       DB_DATABASE: "altaria"
+      # True to enable SpriteBot !gr command integrations
       SPRITEBOT_GP_COMMANDS: "true"
+      # ID of the message and channel containing the server rules, as an embed with one section per rule.
+      # Omit to disable the /rules command.
+      RULES_MESSAGE_ID: "..."
+      RULES_CHANNEL_ID: "..."
     depends_on:
       - db
   db:

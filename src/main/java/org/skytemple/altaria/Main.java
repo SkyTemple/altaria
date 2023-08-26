@@ -27,10 +27,12 @@ import org.skytemple.altaria.features.mod_actions.ModActions;
 import org.skytemple.altaria.features.reputation.Reputation;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
+import org.skytemple.altaria.features.rules.Rules;
 import org.skytemple.altaria.utils.Utils;
 
 public class Main {
 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		Logger logger = Utils.getLogger(Main.class);
 		ExtConfig extConfig = ExtConfig.get();
@@ -45,5 +47,6 @@ public class Main {
 
 		Reputation reputation = new Reputation(db);
 		ModActions modActions = new ModActions();
+		Rules ruels = new Rules();
 	}
 }

@@ -38,6 +38,8 @@ public class ExtConfig {
 	private static final String ENV_DB_PASSWORD = "DB_PASSWORD";
 	private static final String ENV_DB_DATABASE = "DB_DATABASE";
 	private static final String ENV_SPRITEBOT_GP_COMMANDS = "SPRITEBOT_GP_COMMANDS";
+	private static final String ENV_RLUES_CHANNEL_ID = "RULES_CHANNEL_ID";
+	private static final String ENV_RULES_MESSAGE_ID = "RULES_MESSAGE_ID";
 
 	private static final Level DEFAULT_LOG_LEVEL = Level.INFO;
 
@@ -53,6 +55,9 @@ public class ExtConfig {
 	private String dbPassword;
 	private String dbDatabase;
 	private Boolean spritebotGpCommands;
+	private Boolean enableRulesCommand;
+	private Long rulesChannelId;
+	private Long rulesMessageId;
 
 	protected ExtConfig() {
 		botToken = null;
@@ -64,6 +69,9 @@ public class ExtConfig {
 		dbPassword = null;
 		dbDatabase = null;
 		spritebotGpCommands = null;
+		enableRulesCommand = null;
+		rulesMessageId = null;
+		rulesChannelId = null;
 	}
 
 	public static ExtConfig get() {
@@ -198,5 +206,27 @@ public class ExtConfig {
 				"SpriteBot GP commands should be enabled."));
 		}
 		return spritebotGpCommands;
+	}
+
+	/**
+	 * @return ID of the rules message, or null if it's not set.
+	 */
+	public Long rulesMessageId() {
+		if (enableRulesCommand == null) {
+			rulesMessageId = Env.getLong(ENV_RULES_MESSAGE_ID).orElse(null);
+			enableRulesCommand = rulesMessageId != null;
+		}
+		return rulesMessageId;
+	}
+
+	/**
+	 * @return ID of the rules channel, or null if it's not set.
+	 */
+	public Long rulesChannelId() {
+		if (enableRulesCommand == null) {
+			rulesChannelId = Env.getLong(ENV_RLUES_CHANNEL_ID).orElse(null);
+			enableRulesCommand = rulesChannelId != null;
+		}
+		return rulesChannelId;
 	}
 }
