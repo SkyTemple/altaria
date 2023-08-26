@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
 public class Rules {
 	// Seconds to cache the rules for
 	private static final int RULES_CACHE_TIME = 60*30;
-	private static final Pattern RULE_REGEX = Pattern.compile("\\*\\*Rule (.*)\\*\\*\\n");
+	private static final Pattern RULE_REGEX = Pattern.compile("Rule (.*)");
 
 	private final DiscordApi api;
 	private final ExtConfig extConfig;
@@ -59,7 +59,7 @@ public class Rules {
 	// Maps rule IDs to their content
 	private Map<String, String> rules;
 	// Last time the rules map was updated
-	private long lastRulesUpdate;
+	private Long lastRulesUpdate;
 
 	public Rules() {
 		api = ApiGetter.get();
@@ -75,10 +75,13 @@ public class Rules {
 			))
 			.createForServer(api, extConfig.getGuildId())
 			.join();
+
+			// Register listeners
+			api.addSlashCommandCreateListener(this::handleRuleCommand);
 		}
 	}
 
-	private void handleRulesCommand(SlashCommandCreateEvent event) {
+	private void handleRuleCommand(SlashCommandCreateEvent event) {
 		SlashCommandInteraction interaction = event.getSlashCommandInteraction();
 		String[] command = interaction.getFullCommandName().split(" ");
 		InteractionMsgSender sender = new InteractionMsgSender(interaction);
@@ -115,17 +118,11 @@ public class Rules {
 							rules = new HashMap<>();
 							Embed rulesEmbed = rulesEmbedList.get(0);
 							for (EmbedField field : rulesEmbed.getFields()) {
-								String content = field.getValue();
-								Matcher matcher = RULE_REGEX.matcher(content);
+								Matcher matcher = RULE_REGEX.matcher(field.getName());
 								if (matcher.matches()) {
 									String ruleNumber = matcher.group(1);
-									if (ruleNumber != null) {
-										rules.put(ruleNumber, content);
-									} else {
-										errorSender.send("Error: Cannot find rule ID for one of the rules.");
-										logger.error("Cannot find rule ID for the following rule:\n" + content);
-										break;
-									}
+									String ruleContent = field.getValue();
+									rules.put(ruleNumber, "**Rule " + ruleNumber + "**\n" + ruleContent);
 								}
 							}
 							lastRulesUpdate = System.currentTimeMillis();

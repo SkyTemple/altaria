@@ -38,7 +38,7 @@ public class ExtConfig {
 	private static final String ENV_DB_PASSWORD = "DB_PASSWORD";
 	private static final String ENV_DB_DATABASE = "DB_DATABASE";
 	private static final String ENV_SPRITEBOT_GP_COMMANDS = "SPRITEBOT_GP_COMMANDS";
-	private static final String ENV_RLUES_CHANNEL_ID = "RULES_CHANNEL_ID";
+	private static final String ENV_RULES_CHANNEL_ID = "RULES_CHANNEL_ID";
 	private static final String ENV_RULES_MESSAGE_ID = "RULES_MESSAGE_ID";
 
 	private static final Level DEFAULT_LOG_LEVEL = Level.INFO;
@@ -213,8 +213,7 @@ public class ExtConfig {
 	 */
 	public Long rulesMessageId() {
 		if (enableRulesCommand == null) {
-			rulesMessageId = Env.getLong(ENV_RULES_MESSAGE_ID).orElse(null);
-			enableRulesCommand = rulesMessageId != null;
+			setRulesMsgAndChannel();
 		}
 		return rulesMessageId;
 	}
@@ -224,9 +223,14 @@ public class ExtConfig {
 	 */
 	public Long rulesChannelId() {
 		if (enableRulesCommand == null) {
-			rulesChannelId = Env.getLong(ENV_RLUES_CHANNEL_ID).orElse(null);
-			enableRulesCommand = rulesChannelId != null;
+			setRulesMsgAndChannel();
 		}
 		return rulesChannelId;
+	}
+
+	private void setRulesMsgAndChannel() {
+		rulesMessageId = Env.getLong(ENV_RULES_MESSAGE_ID).orElse(null);
+		rulesChannelId = Env.getLong(ENV_RULES_CHANNEL_ID).orElse(null);
+		enableRulesCommand = rulesMessageId != null && rulesChannelId != null;
 	}
 }
