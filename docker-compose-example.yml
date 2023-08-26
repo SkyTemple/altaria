@@ -23,6 +23,10 @@ services:
       # Omit to disable the /rules command.
       RULES_MESSAGE_ID: "..."
       RULES_CHANNEL_ID: "..."
+      # True to timeout members striked by Vortex if the punishment action is "mute"
+      ENABLE_STRIKE_TIMEOUTS: "false"
+      # Channel where Vortex's strike messages are posted. Can be omitted if ENABLE_STRIKE_TIMEOUTS is false.
+      ENV_STRIKE_LOG_CHANNEL_ID: "..."
     depends_on:
       - db
   db:

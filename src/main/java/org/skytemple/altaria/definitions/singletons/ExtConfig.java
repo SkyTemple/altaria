@@ -40,6 +40,8 @@ public class ExtConfig {
 	private static final String ENV_SPRITEBOT_GP_COMMANDS = "SPRITEBOT_GP_COMMANDS";
 	private static final String ENV_RULES_CHANNEL_ID = "RULES_CHANNEL_ID";
 	private static final String ENV_RULES_MESSAGE_ID = "RULES_MESSAGE_ID";
+	private static final String ENV_ENABLE_STRIKE_TIMEOUTS = "ENABLE_STRIKE_TIMEOUTS";
+	private static final String ENV_STRIKE_LOG_CHANNEL_ID = "STRIKE_LOG_CHANNEL_ID";
 
 	private static final Level DEFAULT_LOG_LEVEL = Level.INFO;
 
@@ -58,6 +60,8 @@ public class ExtConfig {
 	private Boolean enableRulesCommand;
 	private Long rulesChannelId;
 	private Long rulesMessageId;
+	private Boolean enableStrikeTimeouts;
+	private Long strikeLogChannelId;
 
 	protected ExtConfig() {
 		botToken = null;
@@ -72,6 +76,8 @@ public class ExtConfig {
 		enableRulesCommand = null;
 		rulesMessageId = null;
 		rulesChannelId = null;
+		enableStrikeTimeouts = null;
+		strikeLogChannelId = null;
 	}
 
 	public static ExtConfig get() {
@@ -226,6 +232,30 @@ public class ExtConfig {
 			setRulesMsgAndChannel();
 		}
 		return rulesChannelId;
+	}
+
+	/**
+	 * @return True if the bot should listen for Vortex strike messages and automatically timeout members who
+	 * get striked.
+	 */
+	public boolean strikeTimeoutsEnabled() {
+		if (enableStrikeTimeouts == null) {
+			enableStrikeTimeouts = Env.getBoolean(ENV_ENABLE_STRIKE_TIMEOUTS).orElseThrow(() -> new FatalErrorException(
+				"The " + ENV_ENABLE_STRIKE_TIMEOUTS + " environment variable must be used to specify if the bot should " +
+					"automatically timeout striked users."));
+		}
+		return enableStrikeTimeouts;
+	}
+
+	/**
+	 * @return ID of the channel where strikes are posted
+	 */
+	public Long strikeLogChannelId() {
+		if (strikeLogChannelId == null) {
+			strikeLogChannelId = Env.getLong(ENV_STRIKE_LOG_CHANNEL_ID).orElseThrow(() -> new FatalErrorException(
+				"Strike log channel must be specified " + "on the " + ENV_STRIKE_LOG_CHANNEL_ID + " environment variable."));
+		}
+		return strikeLogChannelId;
 	}
 
 	private void setRulesMsgAndChannel() {

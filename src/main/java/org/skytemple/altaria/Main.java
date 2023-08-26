@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.interaction.SlashCommandInteraction;
 import org.skytemple.altaria.definitions.db.Database;
+import org.skytemple.altaria.features.auto_timeout.AutoTimeout;
 import org.skytemple.altaria.features.mod_actions.ModActions;
 import org.skytemple.altaria.features.reputation.Reputation;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
@@ -53,6 +54,7 @@ public class Main {
 		Reputation reputation = new Reputation(db);
 		ModActions modActions = new ModActions();
 		Rules ruels = new Rules();
+		AutoTimeout autoTimeout = new AutoTimeout(db);
 	}
 
 	private static void logCommand(SlashCommandCreateEvent event) {
