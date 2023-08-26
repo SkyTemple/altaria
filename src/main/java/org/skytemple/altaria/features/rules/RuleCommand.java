@@ -24,7 +24,7 @@ import org.skytemple.altaria.definitions.senders.MessageSender;
 import java.awt.*;
 import java.util.Map;
 
-public class RulesCommand implements Command {
+public class RuleCommand implements Command {
 	protected Map<String, String> rules;
 	protected String ruleNumber;
 	protected MessageSender resultSender;
@@ -37,7 +37,7 @@ public class RulesCommand implements Command {
 	 * @param resultSender Used to send result messages to the user
 	 * @param errorSender Used to send error messages to the user
 	 */
-	public RulesCommand(Map<String, String> rules, String ruleNumber, MessageSender resultSender,
+	public RuleCommand(Map<String, String> rules, String ruleNumber, MessageSender resultSender,
 	MessageSender errorSender) {
 		this.rules = rules;
 		this.ruleNumber = ruleNumber;

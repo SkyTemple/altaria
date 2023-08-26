@@ -92,7 +92,7 @@ public class Rules {
 			String ruleNumber = arguments.getString("number", true);
 			if (arguments.success()) {
 				updateRules(sender);
-				new RulesCommand(rules, ruleNumber, sender, sender).run();
+				new RuleCommand(rules, ruleNumber, sender, sender).run();
 			}
 		}
 	}
