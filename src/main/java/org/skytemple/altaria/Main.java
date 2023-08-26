@@ -22,6 +22,8 @@ import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.intent.Intent;
 
 import org.apache.logging.log4j.Logger;
+import org.javacord.api.event.interaction.SlashCommandCreateEvent;
+import org.javacord.api.interaction.SlashCommandInteraction;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.features.mod_actions.ModActions;
 import org.skytemple.altaria.features.reputation.Reputation;
@@ -45,8 +47,17 @@ public class Main {
 
 		logger.info("Bot started. Invite URL: " + api.createBotInvite());
 
+		// Register a listener to log commands
+		api.addSlashCommandCreateListener(Main::logCommand);
+
 		Reputation reputation = new Reputation(db);
 		ModActions modActions = new ModActions();
 		Rules ruels = new Rules();
+	}
+
+	private static void logCommand(SlashCommandCreateEvent event) {
+		Logger logger = Utils.getLogger(Main.class);
+		SlashCommandInteraction interaction = event.getSlashCommandInteraction();
+		logger.debug("Command received: " + interaction.getFullCommandName());
 	}
 }

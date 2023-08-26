@@ -17,7 +17,6 @@
 
 package org.skytemple.altaria.features.reputation;
 
-import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.message.component.ActionRow;
 import org.javacord.api.entity.message.component.Button;
@@ -27,7 +26,10 @@ import org.javacord.api.event.interaction.MessageComponentCreateEvent;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.interaction.*;
+import org.skytemple.altaria.definitions.CommandArgumentList;
 import org.skytemple.altaria.definitions.ErrorHandler;
+import org.skytemple.altaria.definitions.db.Database;
+import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.definitions.senders.ChannelMsgSender;
 import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
@@ -36,9 +38,6 @@ import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.utils.DiscordUtils;
 import org.skytemple.altaria.utils.Utils;
-import org.skytemple.altaria.definitions.db.Database;
-import org.skytemple.altaria.definitions.db.ReputationDB;
-import org.skytemple.altaria.definitions.CommandArgumentList;
 
 import java.awt.*;
 import java.util.*;
@@ -142,8 +141,6 @@ public class Reputation {
 	private void handleGpCommand(SlashCommandCreateEvent event) {
 		SlashCommandInteraction interaction = event.getSlashCommandInteraction();
 		String[] command = interaction.getFullCommandName().split(" ");
-		Logger logger = Utils.getLogger(getClass());
-		logger.debug("Command received: " + interaction.getFullCommandName());
 		InteractionMsgSender sender = new InteractionMsgSender(interaction);
 		CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
 
