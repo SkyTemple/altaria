@@ -49,7 +49,7 @@ public class ModActions {
 		SlashCommand.with("renamechannel", "Rename a channel", Arrays.asList(
 			SlashCommandOption.create(SlashCommandOptionType.STRING, "name", "New channel name", true),
 			SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "channel", "Channel to rename. Omit to rename the " +
-				"current channel", false)
+				"current channel.", false)
 		))
 		.setDefaultDisabled()
 		.createForServer(api, extConfig.getGuildId())

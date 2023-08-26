@@ -160,7 +160,7 @@ public class Reputation {
 					cachedLeaderboard = null;
 				}
 			} else {
-				sender.send("Error: Unrecognized GP subcommand");
+				sender.send("Error: Unrecognized GP subcommand.");
 			}
 		} else if (command[0].equals("getgp")) {
 			if (command[1].equals("check")) {
@@ -182,7 +182,7 @@ public class Reputation {
 					}
 				}
 			} else {
-				sender.send("Error: Unrecognized GP subcommand");
+				sender.send("Error: Unrecognized GP subcommand.");
 			}
 		} else if (command[0].equals("multigp")) {
 			long cmdUserId = interaction.getUser().getId();
@@ -221,7 +221,7 @@ public class Reputation {
 					sender.setEphemeral().send();
 				}
 			} else {
-				sender.send("Error: Unrecognized Multi-GP subcommand");
+				sender.send("Error: Unrecognized Multi-GP subcommand.");
 			}
 		}
 	}
@@ -261,7 +261,7 @@ public class Reputation {
 				break;
 			case COMPONENT_LIST_GP_CLEAR:
 				multiGpLists.remove(cmdUserId);
-				sender.setEphemeral().setText("Cleared multi-GP list").send();
+				sender.setEphemeral().setText("Cleared multi-GP list.").send();
 				break;
 		}
 	}

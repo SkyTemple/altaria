@@ -39,7 +39,7 @@ public class GiveGpCommand extends ChangeGpCommand {
 		if (amount > 0) {
 			super.run();
 		} else {
-			errorSender.send("Error: The amount of points must be > 0");
+			errorSender.send("Error: The amount of points must be > 0.");
 		}
 	}
 }

@@ -44,7 +44,7 @@ public class TakeGpInterfaceCommand extends ChangeGpInterfaceCommand {
 			super.run();
 		} else {
 			DiscordUtils.sendJsonResult(privateResultSender, false, "The amount of points must be > 0");
-			errorSender.send("Error: The amount of points must be > 0");
+			errorSender.send("Error: The amount of points must be > 0.");
 		}
 	}
 }

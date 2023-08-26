@@ -48,7 +48,7 @@ public class GetGpCommand implements Command {
 	public void run() {
 		try {
 			int amount = rdb.getPoints(user.getId());
-			resultSender.send("**" + user.getName() + "** has " + amount + " Guild Point(s)");
+			resultSender.send("**" + user.getName() + "** has " + amount + " Guild Point(s).");
 		} catch (DbOperationException e) {
 			new ErrorHandler(e).sendDefaultMessage(errorSender).printToErrorChannel().run();
 		}

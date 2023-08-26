@@ -68,6 +68,6 @@ public class ChangeGpCommand implements Command {
 		} else {
 			msg = "Took " + amount * -1 + " Guild Point(s) from ";
 		}
-		sender.send(msg + "**" + user.getName() + "** (current: " + rdb.getPoints(user.getId()) + ")");
+		sender.send(msg + "**" + user.getName() + "** (current: " + rdb.getPoints(user.getId()) + ").");
 	}
 }
