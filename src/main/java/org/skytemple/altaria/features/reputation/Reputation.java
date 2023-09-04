@@ -28,6 +28,8 @@ import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.interaction.*;
 import org.skytemple.altaria.definitions.CommandArgumentList;
 import org.skytemple.altaria.definitions.ErrorHandler;
+import org.skytemple.altaria.definitions.MultiGpCollection;
+import org.skytemple.altaria.definitions.MultiGpList;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
@@ -37,9 +39,7 @@ import org.skytemple.altaria.definitions.senders.NullMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.utils.DiscordUtils;
-import org.skytemple.altaria.utils.Utils;
 
-import java.awt.*;
 import java.util.*;
 
 /**
@@ -59,17 +59,16 @@ public class Reputation {
 
 	// Used to prevent duplicated queries to the database. Gets invalidated when a GP-changing command is run.
 	private Leaderboard cachedLeaderboard;
-	// Holds the multi-GP lists for the /multigp commands. There's a list for each user that used the command.
-	// Key: ID of the user that runs the command
-	// Value: Map that maps user IDs to the amount of GP they will receive.
-	private final Map<Long, Map<Long, Integer>> multiGpLists;
+	// Holds the multi-GP lists for the /multigp commands. The collection contains one list for each user that
+	// used the command. Each multi-GP list maps a user to the amount of GP they will receive.
+	private final MultiGpCollection multiGpCollection;
 
 	public Reputation(Database db) {
 		api = ApiGetter.get();
 		rdb = new ReputationDB(db);
 		extConfig = ExtConfig.get();
 		cachedLeaderboard = null;
-		multiGpLists = new TreeMap<>();
+		multiGpCollection = new MultiGpCollection();
 
 		// Register commands
 		SlashCommand.with("gp", "Guild point management commands", Arrays.asList(
@@ -188,16 +187,16 @@ public class Reputation {
 				User user = arguments.getCachedUser("user", true);
 				Integer amount = arguments.getInteger("amount", true);
 				if (arguments.success()) {
-					Map<Long, Integer> gpList = multiGpLists.getOrDefault(cmdUserId, new TreeMap<>());
-					gpList.merge(user.getId(), amount, Integer::sum);
-					multiGpLists.put(cmdUserId, gpList);
+					MultiGpList gpList = multiGpCollection.getOrNew(cmdUserId);
+					gpList.add(user.getId(), amount);
+					multiGpCollection.put(cmdUserId, gpList);
 					sender.setEphemeral().setText("Added " + amount + " GP for **" + user.getName() + "** to the " +
 						"multi-GP list. Use /multigp list to confirm or cancel the operation.").send();
 				}
 			} else if (command[1].equals("clear")) {
 				User user = arguments.getCachedUser("user", true);
 				if (arguments.success()) {
-					Map<Long, Integer> gpList = multiGpLists.get(cmdUserId);
+					MultiGpList gpList = multiGpCollection.get(cmdUserId);
 					if (gpList == null) {
 						sender.setEphemeral().setText("The multi-GP list is empty!").send();
 					} else {
@@ -206,11 +205,11 @@ public class Reputation {
 					}
 				}
 			} else if (command[1].equals("list")) {
-				Map<Long, Integer> gpList = multiGpLists.get(cmdUserId);
+				MultiGpList gpList = multiGpCollection.get(cmdUserId);
 				if (gpList == null) {
 					sender.setEphemeral().setText("The multi-GP list is empty!").send();
 				} else {
-					sender.addEmbed(multiGpListToEmbed(gpList));
+					sender.addEmbed(gpList.toEmbed());
 					sender.addComponent(ActionRow.of(
 						Button.success(COMPONENT_LIST_GP_CONFIRM, "Confirm"),
 						Button.danger(COMPONENT_LIST_GP_CLEAR, "Clear all")
@@ -235,19 +234,19 @@ public class Reputation {
 
 		switch (componentId) {
 			case COMPONENT_LIST_GP_CONFIRM:
-				Map<Long, Integer> gpList = multiGpLists.get(cmdUserId);
+				MultiGpList gpList = multiGpCollection.get(cmdUserId);
 				if (gpList == null) {
 					sender.setEphemeral().setText("The multi-GP list is empty!").send();
 				} else {
 					try {
-						EmbedBuilder gpListEmbed = multiGpListToEmbed(gpList);
-						Iterator<Map.Entry<Long, Integer>> it = gpList.entrySet().iterator();
+						EmbedBuilder gpListEmbed = gpList.toEmbed();
+						Iterator<Map.Entry<Long, Integer>> it = gpList.iterator();
 						while (it.hasNext()) {
 							Map.Entry<Long, Integer> entry = it.next();
 							rdb.addPoints(entry.getKey(), entry.getValue());
 							it.remove();
 						}
-						multiGpLists.remove(cmdUserId);
+						multiGpCollection.remove(cmdUserId);
 						// Not ephemeral so the full list is posted somewhere
 						sender.setText("The following Guild Points have been awarded by **" +
 							interaction.getUser().getName() + "**:").addEmbed(gpListEmbed).send();
@@ -257,7 +256,7 @@ public class Reputation {
 				}
 				break;
 			case COMPONENT_LIST_GP_CLEAR:
-				multiGpLists.remove(cmdUserId);
+				multiGpCollection.remove(cmdUserId);
 				sender.setEphemeral().setText("Cleared multi-GP list.").send();
 				break;
 		}
@@ -311,29 +310,5 @@ public class Reputation {
 				}
 			}
 		}
-	}
-
-	/**
-	 * Converts a GP list into an embed. Users will be sorted in descending order by amount of GP
-	 * @param gpList List to convert
-	 */
-	private EmbedBuilder multiGpListToEmbed(Map<Long, Integer> gpList) {
-		StringBuilder result = new StringBuilder();
-		Map<Long, Integer> sortedGpList = Utils.sortByValue(gpList, true);
-		boolean first = true;
-
-		for (Map.Entry<Long, Integer> entry : sortedGpList.entrySet()) {
-			if (first) {
-				first = false;
-			} else {
-				result.append("\n");
-			}
-			result.append("<@").append(entry.getKey()).append(">: ").append(entry.getValue());
-		}
-
-		return new EmbedBuilder()
-			.setTitle("Multi-GP list")
-			.setDescription(result.toString())
-			.setColor(Color.YELLOW);
 	}
 }
