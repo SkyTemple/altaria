@@ -61,6 +61,21 @@ public class Utils {
 	}
 
 	/**
+	 * Converts a double value to an integer. Decimals will be dropped, except if the number is very close to the next
+	 * integer, in which case it will be rounded. This is done to prevent values from accidentally being decreased by 1
+	 * unit due to rounding errors.
+	 * @param value Double value to convert
+	 * @return Integer version of the value
+	 */
+	public static int doubleToInt(Double value) {
+		if (Math.abs(value - value.intValue()) > 0.9999999999) {
+			return (int) Math.round(value);
+		} else {
+			return value.intValue();
+		}
+	}
+
+	/**
 	 * Given a string, truncates it to ensure it doesn't exceed maxChars in length.
 	 * The truncation is performed by removing the last lines of the string, ana appending a new one that lists
 	 * how many lines were removed.

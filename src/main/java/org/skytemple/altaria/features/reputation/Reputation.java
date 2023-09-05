@@ -188,7 +188,7 @@ public class Reputation {
 				Integer amount = arguments.getInteger("amount", true);
 				if (arguments.success()) {
 					MultiGpList gpList = multiGpCollection.getOrNew(cmdUserId);
-					gpList.add(user.getId(), amount);
+					gpList.add(user.getId(), Double.valueOf(amount));
 					multiGpCollection.put(cmdUserId, gpList);
 					sender.setEphemeral().setText("Added " + amount + " GP for **" + user.getName() + "** to the " +
 						"multi-GP list. Use /multigp list to confirm or cancel the operation.").send();
@@ -209,7 +209,7 @@ public class Reputation {
 				if (gpList == null) {
 					sender.setEphemeral().setText("The multi-GP list is empty!").send();
 				} else {
-					sender.addEmbed(gpList.toEmbed());
+					sender.addEmbed(gpList.toEmbed(true));
 					sender.addComponent(ActionRow.of(
 						Button.success(COMPONENT_LIST_GP_CONFIRM, "Confirm"),
 						Button.danger(COMPONENT_LIST_GP_CLEAR, "Clear all")
@@ -239,8 +239,8 @@ public class Reputation {
 					sender.setEphemeral().setText("The multi-GP list is empty!").send();
 				} else {
 					try {
-						EmbedBuilder gpListEmbed = gpList.toEmbed();
-						Iterator<Map.Entry<Long, Integer>> it = gpList.iterator();
+						EmbedBuilder gpListEmbed = gpList.toEmbed(true);
+						Iterator<Map.Entry<Long, Integer>> it = gpList.intIterator();
 						while (it.hasNext()) {
 							Map.Entry<Long, Integer> entry = it.next();
 							rdb.addPoints(entry.getKey(), entry.getValue());
