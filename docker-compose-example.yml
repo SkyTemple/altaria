@@ -5,7 +5,7 @@ services:
     environment:
       # Discord bot token
       BOT_TOKEN: "..."
-      # Logging level
+      # Default logging level
       LOG_LEVEL: "INFO"
       # ID of the guild where the bot is going to be run
       GUILD_ID: "..."
@@ -27,6 +27,8 @@ services:
       ENABLE_STRIKE_TIMEOUTS: "false"
       # Channel where Vortex's strike messages are posted. Can be omitted if ENABLE_STRIKE_TIMEOUTS is false.
       ENV_STRIKE_LOG_CHANNEL_ID: "..."
+      # Channel where GP is awarded for contributions.
+      ENV_SUPPORT_CHANNEL_ID: "..."
     depends_on:
       - db
   db:

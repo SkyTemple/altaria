@@ -51,7 +51,7 @@ public class InteractionMsgSender extends MessageSender {
 	}
 
 	@Override
-	public MessageSender addComponent(HighLevelComponent component) {
+	public InteractionMsgSender addComponent(HighLevelComponent component) {
 		response.addComponents(component);
 		return this;
 	}
@@ -60,7 +60,7 @@ public class InteractionMsgSender extends MessageSender {
 	 * Turns the response into an ephemeral message
 	 * @return this
 	 */
-	public MessageSender setEphemeral() {
+	public InteractionMsgSender setEphemeral() {
 		response.setFlags(MessageFlag.EPHEMERAL);
 		return this;
 	}

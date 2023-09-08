@@ -146,4 +146,15 @@ public class Utils {
 
 		return result;
 	}
+
+
+	/**
+	 * Calculates the logarithm of an arbitrary base for a number
+	 * @param base Logarithm base
+	 * @param number Number to calculate the logarithm of
+	 * @return Logarithm result
+	 */
+	public static double log(double base, double number) {
+		return Math.log(number) / Math.log(base);
+	}
 }

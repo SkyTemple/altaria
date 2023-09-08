@@ -27,6 +27,33 @@ import java.util.concurrent.atomic.AtomicReference;
  * Convenience methods for operations with the Discord API
  */
 public class DiscordUtils {
+	// Timestamp in ms used to convert Discord snowflakes. Represents the first second of 2015.
+	private static final long DISCORD_EPOCH = 1420070400000L;
+
+	/**
+	 * Given a Discord snowflake ID, returns the equivalent timestamp (the time when the object with the specified
+	 * snowflake was created)
+	 * @param snowflake Snowflake to convert
+	 * @return Timestamp associated to the given snowflake, in epoch seconds.
+	 */
+	public static long snowflakeToTimestamp(long snowflake) {
+		return ((snowflake >> 22) + DISCORD_EPOCH) / 1000;
+	}
+
+	/**
+	 * Given a timestamp, returns a Discord snowflake that would represent an object created at that time.
+	 * @param timestamp Timestamp to convert, in epoch seconds. If lower than {@link #DISCORD_EPOCH}, it will be set
+	 *                  to that value first.
+	 * @return Resulting snowflake
+	 */
+	public static long timestampToSnowflake(long timestamp) {
+		long discord_timestamp = timestamp * 1000 - DISCORD_EPOCH;
+		if (discord_timestamp < 0) {
+			discord_timestamp = 0;
+		}
+		return discord_timestamp << 22;
+	}
+
 	/**
 	 * Returns the formatted name of a channel. The resulting string will specify the name of the channel and
 	 * the server it's contained in. If the channel is a DM, it will specify the name of the recipient.

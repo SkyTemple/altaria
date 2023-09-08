@@ -240,12 +240,7 @@ public class Reputation {
 				} else {
 					try {
 						EmbedBuilder gpListEmbed = gpList.toEmbed(true);
-						Iterator<Map.Entry<Long, Integer>> it = gpList.intIterator();
-						while (it.hasNext()) {
-							Map.Entry<Long, Integer> entry = it.next();
-							rdb.addPoints(entry.getKey(), entry.getValue());
-							it.remove();
-						}
+						gpList.apply(rdb);
 						multiGpCollection.remove(cmdUserId);
 						// Not ephemeral so the full list is posted somewhere
 						sender.setText("The following Guild Points have been awarded by **" +

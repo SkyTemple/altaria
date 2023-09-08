@@ -18,6 +18,8 @@
 package org.skytemple.altaria.definitions;
 
 import org.javacord.api.entity.message.embed.EmbedBuilder;
+import org.skytemple.altaria.definitions.db.ReputationDB;
+import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.utils.Utils;
 
 import java.awt.*;
@@ -29,7 +31,7 @@ import java.util.TreeMap;
 /**
  * Used to store a list of users alongside a GP amount they will receive
  */
-public class MultiGpList {
+public class MultiGpList implements Iterable<Map.Entry<Long, Double>> {
 	private static final String DEFAULT_LIST_NAME = "Multi-GP list";
 
 	private final Map<Long, Double> list;
@@ -72,8 +74,20 @@ public class MultiGpList {
 	}
 
 	/**
+	 * Given another multi-GP list, adds all the entries from it to the current list, summing the points for each
+	 * user.
+	 * @param other List to add to the current one
+	 */
+	public void addAll(MultiGpList other) {
+		for (Map.Entry<Long, Double> entry : other) {
+			add(entry.getKey(), entry.getValue());
+		}
+	}
+
+	/**
 	 * @return Iterator that iterates over the entries on this list
 	 */
+	@Override
 	public Iterator<Map.Entry<Long, Double>> iterator() {
 		return list.entrySet().iterator();
 	}
@@ -119,6 +133,22 @@ public class MultiGpList {
 	}
 
 	/**
+	 * Applies the integer version of the amounts stored on the list, altering the GP of all the users listed.
+	 * Entries are removed from the list as they are processed. If an error happens, unprocessed entries will not be
+	 * removed.
+	 * @param rdb Reputation database
+	 * @throws DbOperationException If the operation fails due to a database error
+	 */
+	public void apply(ReputationDB rdb) throws DbOperationException {
+		Iterator<Map.Entry<Long, Integer>> it = intIterator();
+		while (it.hasNext()) {
+			Map.Entry<Long, Integer> entry = it.next();
+			rdb.addPoints(entry.getKey(), entry.getValue());
+			it.remove();
+		}
+	}
+
+	/**
 	 * Used to convert an iterator that gets GP entries as doubles to one that gets them as integers. Decimals are
 	 * dropped in the conversion.
 	 * @param baseIterator Original iterator
@@ -134,6 +164,11 @@ public class MultiGpList {
 		public Map.Entry<Long, Integer> next() {
 			Map.Entry<Long, Double> oldEntry = baseIterator.next();
 			return new AbstractMap.SimpleEntry<>(oldEntry.getKey(), Utils.doubleToInt(oldEntry.getValue()));
+		}
+
+		@Override
+		public void remove() {
+			baseIterator.remove();
 		}
 	}
 }

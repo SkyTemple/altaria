@@ -31,6 +31,7 @@ import org.skytemple.altaria.features.reputation.Reputation;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.features.rules.Rules;
+import org.skytemple.altaria.features.support_points.SupportPoints;
 import org.skytemple.altaria.utils.Utils;
 
 public class Main {
@@ -55,6 +56,7 @@ public class Main {
 		ModActions modActions = new ModActions();
 		Rules ruels = new Rules();
 		AutoTimeout autoTimeout = new AutoTimeout(db);
+		SupportPoints supportPoints = new SupportPoints(db);
 	}
 
 	private static void logCommand(SlashCommandCreateEvent event) {

@@ -18,6 +18,7 @@
 package org.skytemple.altaria.definitions.singletons;
 
 import org.apache.logging.log4j.Level;
+import org.javacord.api.entity.server.Server;
 import org.skytemple.altaria.utils.Env;
 import org.skytemple.altaria.definitions.exceptions.FatalErrorException;
 
@@ -42,6 +43,7 @@ public class ExtConfig {
 	private static final String ENV_RULES_MESSAGE_ID = "RULES_MESSAGE_ID";
 	private static final String ENV_ENABLE_STRIKE_TIMEOUTS = "ENABLE_STRIKE_TIMEOUTS";
 	private static final String ENV_STRIKE_LOG_CHANNEL_ID = "STRIKE_LOG_CHANNEL_ID";
+	private static final String ENV_SUPPORT_CHANNEL_ID = "SUPPORT_CHANNEL_ID";
 
 	private static final Level DEFAULT_LOG_LEVEL = Level.INFO;
 
@@ -62,6 +64,7 @@ public class ExtConfig {
 	private Long rulesMessageId;
 	private Boolean enableStrikeTimeouts;
 	private Long strikeLogChannelId;
+	private Long supportChannelId;
 
 	protected ExtConfig() {
 		botToken = null;
@@ -78,6 +81,7 @@ public class ExtConfig {
 		rulesChannelId = null;
 		enableStrikeTimeouts = null;
 		strikeLogChannelId = null;
+		supportChannelId = null;
 	}
 
 	public static ExtConfig get() {
@@ -261,12 +265,23 @@ public class ExtConfig {
 	/**
 	 * @return ID of the channel where strikes are posted
 	 */
-	public Long strikeLogChannelId() {
+	public long strikeLogChannelId() {
 		if (strikeLogChannelId == null) {
 			strikeLogChannelId = Env.getLong(ENV_STRIKE_LOG_CHANNEL_ID).orElseThrow(() -> new FatalErrorException(
 				"Strike log channel must be specified " + "on the " + ENV_STRIKE_LOG_CHANNEL_ID + " environment variable."));
 		}
 		return strikeLogChannelId;
+	}
+
+	/**
+	 * @return ID of the channel where Guild Points are awarded for contributing
+	 */
+	public long supportChannelId() {
+		if (supportChannelId == null) {
+			supportChannelId = Env.getLong(ENV_SUPPORT_CHANNEL_ID).orElseThrow(() -> new FatalErrorException(
+				"Support channel must be specified " + "on the " + ENV_SUPPORT_CHANNEL_ID + " environment variable."));
+		}
+		return supportChannelId;
 	}
 
 	private void setRulesMsgAndChannel() {
