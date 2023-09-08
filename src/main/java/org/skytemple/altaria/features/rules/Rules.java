@@ -31,7 +31,7 @@ import org.javacord.api.interaction.SlashCommandOption;
 import org.javacord.api.interaction.SlashCommandOptionType;
 import org.skytemple.altaria.definitions.CommandArgumentList;
 import org.skytemple.altaria.definitions.ErrorHandler;
-import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
+import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
 import org.skytemple.altaria.definitions.senders.MessageSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
@@ -85,7 +85,7 @@ public class Rules {
 	private void handleRuleCommand(SlashCommandCreateEvent event) {
 		SlashCommandInteraction interaction = event.getSlashCommandInteraction();
 		String[] command = interaction.getFullCommandName().split(" ");
-		InteractionMsgSender sender = new InteractionMsgSender(interaction);
+		ImmediateInteractionMsgSender sender = new ImmediateInteractionMsgSender(interaction);
 		CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
 
 		if (command[0].equals("rule")) {

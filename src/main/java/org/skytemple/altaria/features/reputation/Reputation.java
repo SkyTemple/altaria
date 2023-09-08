@@ -34,7 +34,7 @@ import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.definitions.senders.ChannelMsgSender;
-import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
+import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
 import org.skytemple.altaria.definitions.senders.NullMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
@@ -140,7 +140,7 @@ public class Reputation {
 	private void handleGpCommand(SlashCommandCreateEvent event) {
 		SlashCommandInteraction interaction = event.getSlashCommandInteraction();
 		String[] command = interaction.getFullCommandName().split(" ");
-		InteractionMsgSender sender = new InteractionMsgSender(interaction);
+		ImmediateInteractionMsgSender sender = new ImmediateInteractionMsgSender(interaction);
 		CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
 
 		if (command[0].equals("gp")) {
@@ -228,7 +228,7 @@ public class Reputation {
 	 */
 	private void handleMessageComponent(MessageComponentCreateEvent event) {
 		MessageComponentInteraction interaction = event.getMessageComponentInteraction();
-		InteractionMsgSender sender = new InteractionMsgSender(interaction);
+		ImmediateInteractionMsgSender sender = new ImmediateInteractionMsgSender(interaction);
 		String componentId = interaction.getCustomId();
 		long cmdUserId = interaction.getUser().getId();
 

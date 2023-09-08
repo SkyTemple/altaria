@@ -46,8 +46,8 @@ public class SupportGpCalcCommand extends SupportGpCommand {
 	 * @param channel Channel where messages will be counted to calculate the GP amounts
 	 * @param startTimestamp Start of the time range to check, in epoch seconds
 	 * @param endTimestamp End of the time range to check, in epoch seconds
-	 * @param resultSender Used to send result messages to the user. Must be an interaction sender, since a confirmation
-	 *                     button is included with the result message.
+	 * @param resultSender Used to send result messages to the user. Must be an interaction since the result message
+	 *                     is ephemeral.
 	 * @param errorSender Used to send error messages to the user
 	 * @param gpListConsumer Code that will consume the generated multi-GP list
 	 */

@@ -17,56 +17,28 @@
 
 package org.skytemple.altaria.definitions.senders;
 
-import org.javacord.api.entity.message.MessageFlag;
 import org.javacord.api.entity.message.component.HighLevelComponent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
-import org.javacord.api.interaction.InteractionBase;
-import org.javacord.api.interaction.callback.InteractionImmediateResponseBuilder;
 
 /**
- * Used to send a message in response to an interaction
+ * Represents an object used to send data through an interaction response
  */
-public class InteractionMsgSender extends MessageSender {
-	private final InteractionBase interaction;
-	private final InteractionImmediateResponseBuilder response;
+public abstract class InteractionMsgSender extends MessageSender {
 
-	/**
-	 * @param interaction Interaction used to send the message as an interaction response
-	 */
-	public InteractionMsgSender(InteractionBase interaction) {
-		this.interaction = interaction;
-		response = interaction.createImmediateResponder();
-	}
+	// Override interface methods to set the subclass as the return type
 
 	@Override
-	public InteractionMsgSender setText(String text) {
-		response.setContent(text);
-		return this;
-	}
+	public abstract InteractionMsgSender setText(String text);
 
 	@Override
-	public InteractionMsgSender addEmbed(EmbedBuilder embed) {
-		response.addEmbed(embed);
-		return this;
-	}
+	public abstract InteractionMsgSender addEmbed(EmbedBuilder embed);
 
 	@Override
-	public InteractionMsgSender addComponent(HighLevelComponent component) {
-		response.addComponents(component);
-		return this;
-	}
+	public abstract InteractionMsgSender addComponent(HighLevelComponent component);
 
 	/**
 	 * Turns the response into an ephemeral message
 	 * @return this
 	 */
-	public InteractionMsgSender setEphemeral() {
-		response.setFlags(MessageFlag.EPHEMERAL);
-		return this;
-	}
-
-	@Override
-	public void send() {
-		response.respond();
-	}
+	public abstract InteractionMsgSender setEphemeral();
 }

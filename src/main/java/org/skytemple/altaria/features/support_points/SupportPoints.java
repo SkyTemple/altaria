@@ -35,7 +35,8 @@ import org.skytemple.altaria.definitions.MultiGpList;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
-import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
+import org.skytemple.altaria.definitions.senders.DelayedInteractionMsgSender;
+import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.utils.JavacordUtils;
@@ -123,8 +124,7 @@ public class SupportPoints {
 	private void handleSupportGpCommand(SlashCommandCreateEvent event) {
 		SlashCommandInteraction interaction = event.getSlashCommandInteraction();
 		String[] command = interaction.getFullCommandName().split(" ");
-		// TODO: Create a new type of sender that uses the respondLater() method so we are not limited to 3 seconds
-		InteractionMsgSender sender = new InteractionMsgSender(interaction);
+		DelayedInteractionMsgSender sender = new DelayedInteractionMsgSender(interaction, true);
 		CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
 
 		if (command[0].equals("supportgp")) {
@@ -166,7 +166,7 @@ public class SupportPoints {
 
 	private void handleMessageComponent(MessageComponentCreateEvent event) {
 		MessageComponentInteraction interaction = event.getMessageComponentInteraction();
-		InteractionMsgSender sender = new InteractionMsgSender(interaction);
+		ImmediateInteractionMsgSender sender = new ImmediateInteractionMsgSender(interaction);
 		String componentId = interaction.getCustomId();
 		long cmdUserId = interaction.getUser().getId();
 
@@ -183,7 +183,7 @@ public class SupportPoints {
 					userDates.remove(cmdUserId);
 					// Not ephemeral so the full list is posted somewhere
 					sender.setText("The following Guild Points have been awarded by **" +
-							interaction.getUser().getName() + "** for suppport contributions from <t:" +
+							interaction.getUser().getName() + "** for support contributions from <t:" +
 							dateRange.startTimestamp + "> to <t:" + dateRange.endTimestamp + ">:")
 						.addEmbed(gpListEmbed).send();
 				} catch (DbOperationException e) {
