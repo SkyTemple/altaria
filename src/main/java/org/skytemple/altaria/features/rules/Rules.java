@@ -64,7 +64,7 @@ public class Rules {
 	public Rules() {
 		api = ApiGetter.get();
 		extConfig = ExtConfig.get();
-		rulesMessageId = extConfig.rulesMessageId();
+		rulesMessageId = extConfig.getRulesMessageId();
 		logger = Utils.getLogger(getClass());
 
 		if (rulesMessageId != null) {
@@ -104,11 +104,11 @@ public class Rules {
 	 */
 	private void updateRules(MessageSender errorSender) {
 		if (rules == null || lastRulesUpdate + RULES_CACHE_TIME < System.currentTimeMillis()) {
-			Channel rulesChannel = api.getChannelById(extConfig.rulesChannelId()).orElse(null);
+			Channel rulesChannel = api.getChannelById(extConfig.getRulesChannelId()).orElse(null);
 			if (rulesChannel != null) {
 				TextChannel rulesTextChannel = rulesChannel.asTextChannel().orElse(null);
 				if (rulesTextChannel != null) {
-					Message rulesMessage = api.getMessageById(extConfig.rulesMessageId(), rulesTextChannel)
+					Message rulesMessage = api.getMessageById(extConfig.getRulesMessageId(), rulesTextChannel)
 						.exceptionally(e -> {
 							new ErrorHandler(e).sendMessage("Error: Cannot retrieve rules message.", errorSender).run();
 							return null;

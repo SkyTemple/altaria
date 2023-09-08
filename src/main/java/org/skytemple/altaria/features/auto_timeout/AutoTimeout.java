@@ -103,7 +103,7 @@ public class AutoTimeout {
 			}
 		} else {
 			if (event.getMessageAuthor().getId() == VORTEX_ID &&
-			event.getChannel().getId() == extConfig.strikeLogChannelId()) {
+			event.getChannel().getId() == extConfig.getStrikeLogChannelId()) {
 				VortexStrikeParser.Strike strike = VortexStrikeParser.parse(message);
 				if (strike != null) {
 					int muteDuration;

@@ -232,7 +232,7 @@ public class ExtConfig {
 	/**
 	 * @return ID of the rules message, or null if it's not set.
 	 */
-	public Long rulesMessageId() {
+	public Long getRulesMessageId() {
 		if (enableRulesCommand == null) {
 			setRulesMsgAndChannel();
 		}
@@ -242,7 +242,7 @@ public class ExtConfig {
 	/**
 	 * @return ID of the rules channel, or null if it's not set.
 	 */
-	public Long rulesChannelId() {
+	public Long getRulesChannelId() {
 		if (enableRulesCommand == null) {
 			setRulesMsgAndChannel();
 		}
@@ -265,7 +265,7 @@ public class ExtConfig {
 	/**
 	 * @return ID of the channel where strikes are posted
 	 */
-	public long strikeLogChannelId() {
+	public long getStrikeLogChannelId() {
 		if (strikeLogChannelId == null) {
 			strikeLogChannelId = Env.getLong(ENV_STRIKE_LOG_CHANNEL_ID).orElseThrow(() -> new FatalErrorException(
 				"Strike log channel must be specified " + "on the " + ENV_STRIKE_LOG_CHANNEL_ID + " environment variable."));
@@ -276,7 +276,7 @@ public class ExtConfig {
 	/**
 	 * @return ID of the channel where Guild Points are awarded for contributing
 	 */
-	public long supportChannelId() {
+	public long getSupportChannelId() {
 		if (supportChannelId == null) {
 			supportChannelId = Env.getLong(ENV_SUPPORT_CHANNEL_ID).orElseThrow(() -> new FatalErrorException(
 				"Support channel must be specified " + "on the " + ENV_SUPPORT_CHANNEL_ID + " environment variable."));

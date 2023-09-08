@@ -76,7 +76,7 @@ public class SupportPoints {
 		multiGpCollection = new MultiGpCollection();
 		userDates = new TreeMap<>();
 
-		Channel _supportChannel = api.getChannelById(extConfig.supportChannelId()).orElse(null);
+		Channel _supportChannel = api.getChannelById(extConfig.getSupportChannelId()).orElse(null);
 		if (_supportChannel != null) {
 			supportChannel = _supportChannel.asServerTextChannel().orElse(null);
 		} else {
@@ -116,7 +116,7 @@ public class SupportPoints {
 			api.addMessageCreateListener(this::handleThreadMessage);
 			api.addMessageDeleteListener(this::handleThreadMessageDeletion);
 		} else {
-			logger.error("Support channel with ID " + extConfig.supportChannelId() + " does not exist or is not a " +
+			logger.error("Support channel with ID " + extConfig.getSupportChannelId() + " does not exist or is not a " +
 				"server text channel. SupportGP commands will be disabled.");
 		}
 	}
@@ -202,7 +202,7 @@ public class SupportPoints {
 	 */
 	private void handleThreadMessage(MessageCreateEvent event) {
 		ServerThreadChannel thread = event.getServerThreadChannel().orElse(null);
-		if (thread != null && thread.getParent().getId() == extConfig.supportChannelId()) {
+		if (thread != null && thread.getParent().getId() == extConfig.getSupportChannelId()) {
 			JavacordUtils.updateThreadMessageCount(thread, 1);
 		}
 	}
@@ -214,7 +214,7 @@ public class SupportPoints {
 	 */
 	private void handleThreadMessageDeletion(MessageDeleteEvent event) {
 		ServerThreadChannel thread = event.getServerThreadChannel().orElse(null);
-		if (thread != null && thread.getParent().getId() == extConfig.supportChannelId()) {
+		if (thread != null && thread.getParent().getId() == extConfig.getSupportChannelId()) {
 			JavacordUtils.updateThreadMessageCount(thread, -1);
 		}
 	}
