@@ -17,8 +17,6 @@
 
 package org.skytemple.altaria.features.support_points;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
 import org.javacord.api.entity.DiscordEntity;
 import org.javacord.api.entity.channel.ServerThreadChannel;
 import org.javacord.api.entity.message.Message;
@@ -85,8 +83,6 @@ public abstract class SupportGpCommand implements Command {
 	 * @return Amount of GP the user should get
 	 */
 	private double calcGp(int userMessages, int threadMessages) {
-		Logger logger = Utils.getLogger(getClass(), Level.TRACE);
-		logger.trace("userMessages: " + userMessages + ", threadMessages: " + threadMessages);
 		// The formula is based on 3 core ideas:
 		// 1) More messages yield logarithmically more GP
 		// This base amount is only used to calculate the penalty factor, since it depends on how many points the
@@ -94,13 +90,10 @@ public abstract class SupportGpCommand implements Command {
 		double baseGp = Utils.log(3, userMessages * 0.4 + 1);
 		// 2) The more messages on the thread, the less GP
 		double basePenaltyFactor = Utils.log(2.1, threadMessages * 0.08 + 1);
-		logger.trace("basePenaltyFactor: " + basePenaltyFactor);
 		// 3) First points are even harder to get when threads have many messages
 		double penaltyFactor = Math.max(1, ((basePenaltyFactor - 1) / Math.pow(2, Math.max(1, baseGp) - 1)) + 1);
-		logger.trace("penaltyFactor: " + penaltyFactor);
 
 		// Now we apply the GP formula again, but accounting for penalty
-		logger.trace("Result: " + Utils.log(3, userMessages * 0.4 / penaltyFactor + 1));
 		return Utils.log(3, userMessages * 0.4 / penaltyFactor + 1);
 	}
 }
