@@ -19,6 +19,7 @@ package org.skytemple.altaria.utils;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
+import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.DiscordEntity;
 import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.channel.ServerThreadChannel;
@@ -26,8 +27,10 @@ import org.javacord.api.entity.server.ArchivedThreads;
 import org.javacord.api.entity.server.Server;
 import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.exceptions.AsyncOperationException;
+import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -127,10 +130,10 @@ public class JavacordUtils {
 		while (!done) {
 			List<ServerThreadChannel> currentThreads;
 			try {
-				// The API docs say the first parameter here is a timestamp used to get threads that were archived
-				// before that date, not a thread ID.
-				ArchivedThreads requestResult =
-					channel.getPublicArchivedThreads(getThreadsBefore, GET_THREADS_BATCH).join();
+				ArchivedThreads requestResult = getPublicArchivedThreads(channel, getThreadsBefore, GET_THREADS_BATCH);
+				if (requestResult == null) {
+					throw new AsyncOperationException();
+				}
 				done = !requestResult.hasMoreThreads();
 				currentThreads = requestResult.getServerThreadChannels();
 			} catch (CompletionException e) {
@@ -169,5 +172,55 @@ public class JavacordUtils {
 		}
 
 		return ret;
+	}
+
+	/**
+	 * Working version of
+	 * {@link org.javacord.api.entity.channel.ServerTextChannel#getPublicArchivedThreads(Long, Integer)}.
+	 * Returns archived threads in the specified channel that are public. The operation is synchronous.
+	 * @param before Return threads archived before this Unix timestamp (in seconds)
+	 * @param limit Maximum amount of threads to return
+	 * @return List of threads
+	 */
+	public static ArchivedThreads getPublicArchivedThreads(ServerTextChannel channel, long before, int limit) {
+		String channelId = channel.getIdAsString();
+		String beforeStr = Instant.ofEpochSecond(before).toString();
+		String limitStr = String.valueOf(limit);
+		DiscordApi api = ApiGetter.get();
+		Server server = ExtConfig.get().getServer();
+
+		//noinspection OverlyBroadCatchBlock
+		try {
+			// :realshaymin:
+			Class<?> restMethodClass = Class.forName("org.javacord.core.util.rest.RestMethod");
+			Object restMethodGet = restMethodClass.getDeclaredMethod("valueOf", String.class).invoke(restMethodClass, "GET");
+			Class<?> restEndpointClass = Class.forName("org.javacord.core.util.rest.RestEndpoint");
+			Class<?> restRequestClass = Class.forName("org.javacord.core.util.rest.RestRequest");
+			Class<?> restRequestResultClass = Class.forName("org.javacord.core.util.rest.RestRequestResult");
+			Class<?> archivedThreadsImplClass = Class.forName("org.javacord.core.entity.server.ArchivedThreadsImpl");
+			Class<?> discordApiImplClass = Class.forName("org.javacord.core.DiscordApiImpl");
+			Class<?> serverImplClass = Class.forName("org.javacord.core.entity.server.ServerImpl");
+			Class<?> jsonNodeClass = Class.forName("com.fasterxml.jackson.databind.JsonNode");
+
+			Object restEndpointPublicArchivedThreads = restEndpointClass.getDeclaredMethod("valueOf", String.class)
+				.invoke(restEndpointClass, "LIST_PUBLIC_ARCHIVED_THREADS");
+			@SuppressWarnings("JavaReflectionInvocation")
+			Object restRequest = restRequestClass.getDeclaredConstructor(DiscordApi.class, restMethodClass, restEndpointClass)
+				.newInstance(api, restMethodGet, restEndpointPublicArchivedThreads);
+			restRequestClass.getMethod("setUrlParameters", String[].class).invoke(restRequest, (Object) new String[]{channelId});
+			restRequestClass.getMethod("addQueryParameter", String.class, String.class).invoke(restRequest, "before", beforeStr);
+			restRequestClass.getMethod("addQueryParameter", String.class, String.class).invoke(restRequest, "limit", limitStr);
+			Object result = restRequestClass.getMethod("executeBlocking").invoke(restRequest);
+			Object resultJson = restRequestResultClass.getMethod("getJsonBody").invoke(result);
+
+			@SuppressWarnings("JavaReflectionInvocation")
+			Object archivedThreadsImpl = archivedThreadsImplClass.getDeclaredConstructor(
+					discordApiImplClass, serverImplClass, jsonNodeClass)
+				.newInstance(discordApiImplClass.cast(api), serverImplClass.cast(server), resultJson);
+			return (ArchivedThreads) archivedThreadsImpl;
+		} catch (ReflectiveOperationException e) {
+			new ErrorHandler(e).printToErrorChannel().run();
+			return null;
+		}
 	}
 }
