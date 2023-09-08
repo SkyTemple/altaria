@@ -222,7 +222,7 @@ public class CommandArgumentList {
 		Optional<T> value = getter.getValue(argument);
 		if (value.isEmpty() && (required || argument.getStringRepresentationValue().isPresent())) {
 			/*
-				Either the argument is required but doesn't have a value or we couldn't get the value, but the argument+
+				Either the argument is required but doesn't have a value or we couldn't get the value, but the argument
 				does hold a value in it (in that case, the specified getter was probably incorrect). This is an error.
 			 */
 			errorMsgSender.send("**Error**: Couldn't get value for argument \"" + argument.getName() + "\".");

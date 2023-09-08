@@ -119,11 +119,19 @@ public class MultiGpList implements Iterable<Map.Entry<Long, Double>> {
 			}
 			String valueStr;
 			if (useIntegers) {
-				valueStr = String.valueOf(Utils.doubleToInt(entry.getValue()));
+				int value = Utils.doubleToInt(entry.getValue());
+				if (value == 0) {
+					valueStr = null;
+				} else {
+					valueStr = String.valueOf(value);
+				}
 			} else {
 				valueStr = String.valueOf(entry.getValue());
 			}
-			result.append("<@").append(entry.getKey()).append(">: ").append(valueStr);
+
+			if (valueStr != null) {
+				result.append("<@").append(entry.getKey()).append(">: ").append(valueStr);
+			}
 		}
 
 		return new EmbedBuilder()
@@ -143,7 +151,10 @@ public class MultiGpList implements Iterable<Map.Entry<Long, Double>> {
 		Iterator<Map.Entry<Long, Integer>> it = intIterator();
 		while (it.hasNext()) {
 			Map.Entry<Long, Integer> entry = it.next();
-			rdb.addPoints(entry.getKey(), entry.getValue());
+			int points = entry.getValue();
+			if (points != 0) {
+				rdb.addPoints(entry.getKey(), entry.getValue());
+			}
 			it.remove();
 		}
 	}
