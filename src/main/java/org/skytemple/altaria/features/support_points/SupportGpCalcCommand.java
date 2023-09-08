@@ -79,7 +79,7 @@ public class SupportGpCalcCommand extends SupportGpCommand {
 				)).setEphemeral().send();
 			gpListConsumer.consume(gpList);
 		} catch (AsyncOperationException e) {
-			new ErrorHandler(e).sendDefaultMessage(errorSender).printToErrorChannel();
+			new ErrorHandler(e).sendDefaultMessage(errorSender).printToErrorChannel().run();
 		}
 	}
 
