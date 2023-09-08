@@ -24,6 +24,7 @@ import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.utils.Utils;
 
+import java.util.concurrent.CompletionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,7 +41,7 @@ public class VortexStrikeParser {
 	/**
 	 * Given a Discord message containing a Vortex strike, returns relevant information about it.
 	 * @param message Message to parse
-	 * @return Record containing information about the strike, or null if the message couldn't be parse successfully.
+	 * @return Record containing information about the strike, or null if the message couldn't be parsed successfully.
 	 */
 	public static Strike parse(String message) {
 		DiscordApi api = ApiGetter.get();
@@ -63,11 +64,14 @@ public class VortexStrikeParser {
 						"Message:\n" + message)).printToErrorChannel().run();
 					return null;
 				}
-				User user = api.getUserById(userId).exceptionally(e -> {
+				User user;
+				try {
+					user = api.getUserById(userId).join();
+				} catch (CompletionException e) {
 					logger.error("Cannot find user to timeout. User ID: " + userId);
 					new ErrorHandler(e).printToErrorChannel().run();
 					return null;
-				}).join();
+				}
 
 				Matcher strikeChangeMatcher = STRIKE_MSG_STRIKE_CHANGE.matcher(message);
 				if (strikeChangeMatcher.find()) {
