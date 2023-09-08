@@ -133,6 +133,17 @@ public class ExtConfig {
 	}
 
 	/**
+	 * Gets a reference to the server where the bot has been deployed.
+	 * This method, unlike most methods in this class, is NOT cached, since the Server instance is already cached and
+	 * kept up to date by Javacord.
+	 * @return The Discord server where the bot is has been deployed
+	 */
+	public Server getServer() {
+		return ApiGetter.get().getServerById(getGuildId()).orElseThrow(() -> new FatalErrorException("The server " +
+			"ID specified on the environment variables does not exist."));
+	}
+
+	/**
 	 * Returns the ID of the channel where full errors should be logged, if it was specified.
 	 * @return Channel where the errors should be logged. Empty if an error log channel has not been specified.
 	 */
