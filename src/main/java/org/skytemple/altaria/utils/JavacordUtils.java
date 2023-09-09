@@ -21,7 +21,6 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.DiscordEntity;
-import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.channel.ServerThreadChannel;
 import org.javacord.api.entity.server.ArchivedThreads;
 import org.javacord.api.entity.server.Server;
@@ -86,13 +85,13 @@ public class JavacordUtils {
 	/**
 	 * Given a channel, gets all the public threads in it that have at least one message between the two
 	 * specified timestamps.
-	 * @param channel Channel whose threads should be checed
+	 * @param channelId Id of the channel whose threads should be checked
 	 * @param startTime Start time, in epoch seconds
 	 * @param endTime End time, in epoch seconds
 	 * @return List of public threads in that channel, archived or not.
 	 * @throws AsyncOperationException If any of the API requests performed in this method fails for whatever reason.
 	 */
-	public static List<ServerThreadChannel> getPublicThreadsBetween(ServerTextChannel channel, long startTime,
+	public static List<ServerThreadChannel> getPublicThreadsBetween(Long channelId, long startTime,
 		long endTime) throws AsyncOperationException {
 		Server server = ExtConfig.get().getServer();
 		List<ServerThreadChannel> ret = new ArrayList<>();
@@ -107,7 +106,7 @@ public class JavacordUtils {
 		}
 		for (ServerThreadChannel thread : serverThreads) {
 			// Keep only the ones in the channel we care about
-			if (thread.getParent().getId() == channel.getId()) {
+			if (thread.getParent().getId() == channelId) {
 				// Keep only the ones with messages between the specified time range
 				if (thread.getCreationTimestamp().getEpochSecond() < endTime) {
 					Long lastMessageId;
@@ -130,7 +129,7 @@ public class JavacordUtils {
 		while (!done) {
 			List<ServerThreadChannel> currentThreads;
 			try {
-				ArchivedThreads requestResult = getPublicArchivedThreads(channel, getThreadsBefore, GET_THREADS_BATCH);
+				ArchivedThreads requestResult = getPublicArchivedThreads(channelId, getThreadsBefore, GET_THREADS_BATCH);
 				if (requestResult == null) {
 					throw new AsyncOperationException();
 				}
@@ -178,12 +177,13 @@ public class JavacordUtils {
 	 * Working version of
 	 * {@link org.javacord.api.entity.channel.ServerTextChannel#getPublicArchivedThreads(Long, Integer)}.
 	 * Returns archived threads in the specified channel that are public. The operation is synchronous.
+	 * @param channelId ID of the channel to check. Should correspond to a text channel or a forum channel
 	 * @param before Return threads archived before this Unix timestamp (in seconds)
 	 * @param limit Maximum amount of threads to return
 	 * @return List of threads
 	 */
-	public static ArchivedThreads getPublicArchivedThreads(ServerTextChannel channel, long before, int limit) {
-		String channelId = channel.getIdAsString();
+	public static ArchivedThreads getPublicArchivedThreads(long channelId, long before, int limit) {
+		String channelIdStr = String.valueOf(channelId);
 		String beforeStr = Instant.ofEpochSecond(before).toString();
 		String limitStr = String.valueOf(limit);
 		DiscordApi api = ApiGetter.get();
@@ -207,7 +207,7 @@ public class JavacordUtils {
 			@SuppressWarnings("JavaReflectionInvocation")
 			Object restRequest = restRequestClass.getDeclaredConstructor(DiscordApi.class, restMethodClass, restEndpointClass)
 				.newInstance(api, restMethodGet, restEndpointPublicArchivedThreads);
-			restRequestClass.getMethod("setUrlParameters", String[].class).invoke(restRequest, (Object) new String[]{channelId});
+			restRequestClass.getMethod("setUrlParameters", String[].class).invoke(restRequest, (Object) new String[]{channelIdStr});
 			restRequestClass.getMethod("addQueryParameter", String.class, String.class).invoke(restRequest, "before", beforeStr);
 			restRequestClass.getMethod("addQueryParameter", String.class, String.class).invoke(restRequest, "limit", limitStr);
 			Object result = restRequestClass.getMethod("executeBlocking").invoke(restRequest);

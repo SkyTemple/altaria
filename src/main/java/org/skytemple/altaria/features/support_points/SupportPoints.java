@@ -20,6 +20,7 @@ package org.skytemple.altaria.features.support_points;
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.Channel;
+import org.javacord.api.entity.channel.ServerForumChannel;
 import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.channel.ServerThreadChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
@@ -65,8 +66,8 @@ public class SupportPoints {
 	private final MultiGpCollection multiGpCollection;
 	// Used to store the dates specified when running the "calc" command. One entry for each user who run the command.
 	private final Map<Long, DateRange> userDates;
-	// Channel used to calculate the points
-	private final ServerTextChannel supportChannel;
+	// ID of the channel used to calculate the points
+	private final long supportChannelId;
 
 	public SupportPoints(Database db) {
 		api = ApiGetter.get();
@@ -75,15 +76,10 @@ public class SupportPoints {
 		logger = Utils.getLogger(getClass());
 		multiGpCollection = new MultiGpCollection();
 		userDates = new TreeMap<>();
+		supportChannelId = extConfig.getSupportChannelId();
 
-		Channel _supportChannel = api.getChannelById(extConfig.getSupportChannelId()).orElse(null);
-		if (_supportChannel != null) {
-			supportChannel = _supportChannel.asServerTextChannel().orElse(null);
-		} else {
-			supportChannel = null;
-		}
-
-		if (supportChannel != null) {
+		Channel _supportChannel = api.getChannelById(supportChannelId).orElse(null);
+		if (_supportChannel instanceof ServerTextChannel || _supportChannel instanceof ServerForumChannel) {
 			// Register commands
 			SlashCommand.with("supportgp", "Commands to give GP for support contributions", Arrays.asList(
 				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check how many " +
@@ -152,7 +148,7 @@ public class SupportPoints {
 					} else {
 						endTimestamp = System.currentTimeMillis() / 1000;
 					}
-					new SupportGpCalcCommand(supportChannel, startTimestamp, endTimestamp, sender, sender, gpList -> {
+					new SupportGpCalcCommand(supportChannelId, startTimestamp, endTimestamp, sender, sender, gpList -> {
 						long userId = interaction.getUser().getId();
 						multiGpCollection.put(userId, gpList);
 						userDates.put(userId, new DateRange(startTimestamp, endTimestamp));

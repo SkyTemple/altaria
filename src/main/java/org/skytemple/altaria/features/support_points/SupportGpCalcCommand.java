@@ -17,7 +17,6 @@
 
 package org.skytemple.altaria.features.support_points;
 
-import org.javacord.api.entity.channel.ServerTextChannel;
 import org.javacord.api.entity.channel.ServerThreadChannel;
 import org.javacord.api.entity.message.component.ActionRow;
 import org.javacord.api.entity.message.component.Button;
@@ -31,7 +30,7 @@ import org.skytemple.altaria.utils.JavacordUtils;
 import java.util.List;
 
 public class SupportGpCalcCommand extends SupportGpCommand {
-	private final ServerTextChannel channel;
+	private final long channelId;
 	private final long startTimestamp;
 	private final long endTimestamp;
 	private final InteractionMsgSender resultSender;
@@ -43,7 +42,7 @@ public class SupportGpCalcCommand extends SupportGpCommand {
 	 * should receive. Only messages within the specified time range will be counted.
 	 * After the command is run, the generated multi-GP list will be printed as an embed. It will also be passed to the
 	 * specified GP list consumer.
-	 * @param channel Channel where messages will be counted to calculate the GP amounts
+	 * @param channelId Id of the channel where messages will be counted to calculate the GP amounts
 	 * @param startTimestamp Start of the time range to check, in epoch seconds
 	 * @param endTimestamp End of the time range to check, in epoch seconds
 	 * @param resultSender Used to send result messages to the user. Must be an interaction since the result message
@@ -51,9 +50,9 @@ public class SupportGpCalcCommand extends SupportGpCommand {
 	 * @param errorSender Used to send error messages to the user
 	 * @param gpListConsumer Code that will consume the generated multi-GP list
 	 */
-	public SupportGpCalcCommand(ServerTextChannel channel, long startTimestamp, long endTimestamp,
+	public SupportGpCalcCommand(long channelId, long startTimestamp, long endTimestamp,
 		InteractionMsgSender resultSender, MessageSender errorSender, MultiGpListConsumer gpListConsumer) {
-		this.channel = channel;
+		this.channelId = channelId;
 		this.startTimestamp = startTimestamp;
 		this.endTimestamp = endTimestamp;
 		this.resultSender = resultSender;
@@ -65,7 +64,7 @@ public class SupportGpCalcCommand extends SupportGpCommand {
 	public void run() {
 		try {
 			List<ServerThreadChannel> threads =
-				JavacordUtils.getPublicThreadsBetween(channel, startTimestamp, endTimestamp);
+				JavacordUtils.getPublicThreadsBetween(channelId, startTimestamp, endTimestamp);
 
 			// Calculate GP for each thread
 			MultiGpList gpList = new MultiGpList("Support Guild Points");
