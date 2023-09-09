@@ -18,8 +18,6 @@
 package org.skytemple.altaria.features.reputation;
 
 import org.javacord.api.DiscordApi;
-import org.javacord.api.entity.message.component.ActionRow;
-import org.javacord.api.entity.message.component.Button;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.interaction.MessageComponentCreateEvent;
@@ -40,7 +38,8 @@ import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.utils.DiscordUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Class used to handle reputation commands and events
@@ -50,8 +49,8 @@ public class Reputation {
 	private static final long SPRITEBOT_COMMANDS_CHANNEL_ID = 822865440489472020L;
 
 	// Component IDs
-	private static final String COMPONENT_LIST_GP_CONFIRM = "listGpConfirm";
-	private static final String COMPONENT_LIST_GP_CLEAR = "listGpClear";
+	public static final String COMPONENT_LIST_GP_CONFIRM = "listGpConfirm";
+	public static final String COMPONENT_LIST_GP_CLEAR = "listGpClear";
 
 	private final DiscordApi api;
 	private final ReputationDB rdb;
@@ -181,41 +180,23 @@ public class Reputation {
 				sender.send("Error: Unrecognized GP subcommand.");
 			}
 		} else if (command[0].equals("multigp")) {
+			// Maybe these should be moved to command classes too
+
 			long cmdUserId = interaction.getUser().getId();
 
 			if (command[1].equals("add")) {
 				User user = arguments.getCachedUser("user", true);
 				Integer amount = arguments.getInteger("amount", true);
 				if (arguments.success()) {
-					MultiGpList gpList = multiGpCollection.getOrNew(cmdUserId);
-					gpList.add(user.getId(), Double.valueOf(amount));
-					multiGpCollection.put(cmdUserId, gpList);
-					sender.setEphemeral().setText("Added " + amount + " GP for **" + user.getName() + "** to the " +
-						"multi-GP list. Use /multigp list to confirm or cancel the operation.").send();
+					new MultiGpAddCommand(multiGpCollection, user, amount, cmdUserId, sender).run();
 				}
 			} else if (command[1].equals("clear")) {
 				User user = arguments.getCachedUser("user", true);
 				if (arguments.success()) {
-					MultiGpList gpList = multiGpCollection.get(cmdUserId);
-					if (gpList == null) {
-						sender.setEphemeral().setText("The multi-GP list is empty!").send();
-					} else {
-						gpList.remove(user.getId());
-						sender.setEphemeral().setText("**" + user.getName() + "** removed from the multi-GP list.").send();
-					}
+					new MultiGpClearCommand(multiGpCollection, user, cmdUserId, sender).run();
 				}
 			} else if (command[1].equals("list")) {
-				MultiGpList gpList = multiGpCollection.get(cmdUserId);
-				if (gpList == null) {
-					sender.setEphemeral().setText("The multi-GP list is empty!").send();
-				} else {
-					sender.addEmbed(gpList.toEmbed(true));
-					sender.addComponent(ActionRow.of(
-						Button.success(COMPONENT_LIST_GP_CONFIRM, "Confirm"),
-						Button.danger(COMPONENT_LIST_GP_CLEAR, "Clear all")
-					));
-					sender.setEphemeral().send();
-				}
+				new MultiGpListCommand(multiGpCollection, cmdUserId, sender).run();
 			} else {
 				sender.send("Error: Unrecognized Multi-GP subcommand.");
 			}
