@@ -22,7 +22,9 @@ import org.javacord.api.entity.message.component.ActionRow;
 import org.javacord.api.entity.message.component.Button;
 import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.MultiGpList;
+import org.skytemple.altaria.definitions.db.SupportThreadsDB;
 import org.skytemple.altaria.definitions.exceptions.AsyncOperationException;
+import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
 import org.skytemple.altaria.definitions.senders.MessageSender;
 import org.skytemple.altaria.utils.JavacordUtils;
@@ -42,6 +44,7 @@ public class SupportGpCalcCommand extends SupportGpCommand {
 	 * should receive. Only messages within the specified time range will be counted.
 	 * After the command is run, the generated multi-GP list will be printed as an embed. It will also be passed to the
 	 * specified GP list consumer.
+	 * @param sdb Support threads DB
 	 * @param channelId Id of the channel where messages will be counted to calculate the GP amounts
 	 * @param startTimestamp Start of the time range to check, in epoch seconds
 	 * @param endTimestamp End of the time range to check, in epoch seconds
@@ -50,8 +53,9 @@ public class SupportGpCalcCommand extends SupportGpCommand {
 	 * @param errorSender Used to send error messages to the user
 	 * @param gpListConsumer Code that will consume the generated multi-GP list
 	 */
-	public SupportGpCalcCommand(long channelId, long startTimestamp, long endTimestamp,
+	public SupportGpCalcCommand(SupportThreadsDB sdb, long channelId, long startTimestamp, long endTimestamp,
 		InteractionMsgSender resultSender, MessageSender errorSender, MultiGpListConsumer gpListConsumer) {
+		super(sdb);
 		this.channelId = channelId;
 		this.startTimestamp = startTimestamp;
 		this.endTimestamp = endTimestamp;
@@ -77,7 +81,7 @@ public class SupportGpCalcCommand extends SupportGpCommand {
 					Button.success(SupportPoints.COMPONENT_SUPPORT_GP_CONFIRM, "Confirm")
 				)).setEphemeral().send();
 			gpListConsumer.consume(gpList);
-		} catch (AsyncOperationException e) {
+		} catch (AsyncOperationException | DbOperationException e) {
 			new ErrorHandler(e).sendDefaultMessage(errorSender).printToErrorChannel().run();
 		}
 	}

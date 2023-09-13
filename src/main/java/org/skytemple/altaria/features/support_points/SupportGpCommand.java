@@ -22,16 +22,24 @@ import org.javacord.api.entity.channel.ServerThreadChannel;
 import org.javacord.api.entity.message.Message;
 import org.skytemple.altaria.definitions.Command;
 import org.skytemple.altaria.definitions.MultiGpList;
+import org.skytemple.altaria.definitions.db.SupportThreadsDB;
 import org.skytemple.altaria.definitions.exceptions.AsyncOperationException;
+import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.utils.DiscordUtils;
 import org.skytemple.altaria.utils.Utils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletionException;
 
 public abstract class SupportGpCommand implements Command {
+	protected final SupportThreadsDB sdb;
+
+	protected SupportGpCommand(SupportThreadsDB sdb) {
+		this.sdb = sdb;
+	}
 
 	/**
 	 * Given a thread, calculates how many GP would be awarded to each user who participated on it. Only messages
@@ -41,9 +49,10 @@ public abstract class SupportGpCommand implements Command {
 	 * @param endTimestamp End of the time range to check, in epoch seconds
 	 * @return List with the amount of GP each user would get
 	 * @throws AsyncOperationException If messages cannot be retrieved for whatever reason
+	 * @throws DbOperationException If "should get GP" overrides cannot be retrieved from the database
 	 */
 	protected MultiGpList calcGp(ServerThreadChannel thread, long startTimestamp, long endTimestamp)
-		throws AsyncOperationException {
+		throws AsyncOperationException, DbOperationException {
 		MultiGpList ret = new MultiGpList("Support thread Guild Points");
 		// Number of messages for each user
 		Map<Long, Integer> userMessages = new TreeMap<>();
@@ -65,9 +74,17 @@ public abstract class SupportGpCommand implements Command {
 				lastUserId = authorId;
 			}
 		}
-		// TODO: Get the list of user overrides for the current thread. Drop users marked as "shouldn't get GP here"
-		//  from the list. If OP is listed as "should get GP", don't remove them.
-		userMessages.remove(thread.getOwnerId());
+
+		long threadId = thread.getId();
+		// Get the list of users who shouldn't get GP here
+		List<Long> shouldNotGetGp = sdb.getShouldNotGetGpUsers(threadId);
+		// Add OP
+		shouldNotGetGp.add(thread.getOwnerId());
+		// Remove users who should get GP
+		shouldNotGetGp.removeAll(sdb.getShouldGetGpUsers(threadId));
+
+		// Anyone still on the exclusion list gets no GP
+		Utils.removeAll(userMessages, shouldNotGetGp);
 
 		int threadMessages = thread.getMessageCount();
 		for (Map.Entry<Long, Integer> entry : userMessages.entrySet()) {

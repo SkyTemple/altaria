@@ -64,7 +64,7 @@ public class ModActions {
 
 		// Create listeners
 		api.addSlashCommandCreateListener(this::handleModActionCommand);
-		api.addMessageContextMenuCommandListener(this::handleModContextAction);
+		api.addMessageContextMenuCommandListener(this::handleContextAction);
 	}
 
 	private void handleModActionCommand(SlashCommandCreateEvent event) {
@@ -89,7 +89,7 @@ public class ModActions {
 		}
 	}
 
-	private void handleModContextAction(MessageContextMenuCommandEvent event) {
+	private void handleContextAction(MessageContextMenuCommandEvent event) {
 		MessageContextMenuInteraction interaction = event.getMessageContextMenuInteraction();
 		ImmediateInteractionMsgSender sender = new ImmediateInteractionMsgSender(interaction);
 		String cmdName = interaction.getCommandName();

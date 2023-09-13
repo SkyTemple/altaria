@@ -76,6 +76,19 @@ public class Utils {
 	}
 
 	/**
+	 * Given a map and a series of keys, removes all the keys present on the list from the map.
+	 * @param map Map to remove entrires from
+	 * @param removeList List containing the entries to remove
+	 * @param <K> Map key type
+	 * @param <V> Map value type
+	 */
+	public static <K, V> void removeAll(Map<K, V> map, Iterable<K> removeList) {
+		for (K key : removeList) {
+			map.remove(key);
+		}
+	}
+
+	/**
 	 * Given a string, truncates it to ensure it doesn't exceed maxChars in length.
 	 * The truncation is performed by removing the last lines of the string, ana appending a new one that lists
 	 * how many lines were removed.

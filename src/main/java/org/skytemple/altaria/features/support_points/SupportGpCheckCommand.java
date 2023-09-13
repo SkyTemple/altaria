@@ -20,7 +20,9 @@ package org.skytemple.altaria.features.support_points;
 import org.javacord.api.entity.channel.ServerThreadChannel;
 import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.MultiGpList;
+import org.skytemple.altaria.definitions.db.SupportThreadsDB;
 import org.skytemple.altaria.definitions.exceptions.AsyncOperationException;
+import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.definitions.senders.MessageSender;
 
 public class SupportGpCheckCommand extends SupportGpCommand {
@@ -31,11 +33,14 @@ public class SupportGpCheckCommand extends SupportGpCommand {
 	/**
 	 * Given a thread, determines how many points the users on it should receive. All messages in the thread will
 	 * be counted.
+	 * @param sdb Support threads DB
 	 * @param thread Thread to check
 	 * @param resultSender Used to send result messages to the user
 	 * @param errorSender Used to send error messages to the user
 	 */
-	public SupportGpCheckCommand(ServerThreadChannel thread, MessageSender resultSender, MessageSender errorSender) {
+	public SupportGpCheckCommand(SupportThreadsDB sdb, ServerThreadChannel thread, MessageSender resultSender,
+		MessageSender errorSender) {
+		super(sdb);
 		this.thread = thread;
 		this.resultSender = resultSender;
 		this.errorSender = errorSender;
@@ -46,7 +51,7 @@ public class SupportGpCheckCommand extends SupportGpCommand {
 		MultiGpList list;
 		try {
 			list = calcGp(thread, 0L, System.currentTimeMillis() / 1000);
-		} catch (AsyncOperationException e) {
+		} catch (AsyncOperationException | DbOperationException e) {
 			new ErrorHandler(e).printToErrorChannel().sendDefaultMessage(errorSender).run();
 			return;
 		}

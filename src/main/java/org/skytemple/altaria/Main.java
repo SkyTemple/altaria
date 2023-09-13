@@ -47,8 +47,6 @@ public class Main {
 		Database db = new Database(extConfig.getDbHost(), extConfig.getDbPort(), extConfig.getDbUsername(),
 			extConfig.getDbPassword(), extConfig.getDbDatabase());
 
-		logger.info("Bot started. Invite URL: " + api.createBotInvite());
-
 		// Register a listener to log commands
 		api.addSlashCommandCreateListener(Main::logCommand);
 
@@ -57,6 +55,8 @@ public class Main {
 		Rules ruels = new Rules();
 		AutoTimeout autoTimeout = new AutoTimeout(db);
 		SupportPoints supportPoints = new SupportPoints(db);
+
+		logger.info("Bot started. Invite URL: " + api.createBotInvite());
 	}
 
 	private static void logCommand(SlashCommandCreateEvent event) {
