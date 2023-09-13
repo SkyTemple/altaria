@@ -36,8 +36,8 @@ public class SupportThreadsDB {
 		// Create the table if it doesn't exist
 		try {
 			db.updateWithReconnect("CREATE TABLE IF NOT EXISTS " + SUPPORT_THREADS_TABLE_NAME + "(" +
-				"`user_id` BIGINT(30) unsigned NOT NULL," +
-				"`thread_id` BIGINT(30) unsigned NOT NULL," +
+				"`user_id` BIGINT(30) UNSIGNED NOT NULL," +
+				"`thread_id` BIGINT(30) UNSIGNED NOT NULL," +
 				"`should_get_gp` BOOLEAN NOT NULL," + // Internally stored as a 1-byte integer
 				"PRIMARY KEY (`user_id`, `thread_id`));");
 		} catch (DbOperationException e) {

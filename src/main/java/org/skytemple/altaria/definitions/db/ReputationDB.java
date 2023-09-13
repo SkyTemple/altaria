@@ -39,8 +39,8 @@ public class ReputationDB {
 		// Create the table if it doesn't exist
 		try {
 			db.updateWithReconnect("CREATE TABLE IF NOT EXISTS " + REPUTATION_TABLE_NAME + "(" +
-				"`discord_id` BIGINT(30) unsigned NOT NULL," +
-				"`points` INT(20) signed NOT NULL," +
+				"`discord_id` BIGINT(30) UNSIGNED NOT NULL," +
+				"`points` INT(20) SIGNED NOT NULL," +
 				"PRIMARY KEY (`discord_id`));");
 		} catch (DbOperationException e) {
 			throw new FatalErrorException("Cannot create reputation table", e);

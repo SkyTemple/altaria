@@ -37,8 +37,8 @@ public class AutoTimeoutDB {
 		// Create the table if it doesn't exist
 		try {
 			db.updateWithReconnect("CREATE TABLE IF NOT EXISTS " + AUTO_TIMEOUT_TABLE + "(" +
-				"`strikes` INT(10) unsigned NOT NULL," +
-				"`duration` INT(10) unsigned NOT NULL," +
+				"`strikes` INT(10) UNSIGNED NOT NULL," +
+				"`duration` INT(10) UNSIGNED NOT NULL," +
 				"PRIMARY KEY (`strikes`));");
 		} catch (DbOperationException e) {
 			throw new FatalErrorException("Cannot create auto_timeout table", e);
