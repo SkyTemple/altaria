@@ -183,6 +183,8 @@ public class JavacordUtils {
 	 * @return List of threads
 	 */
 	public static ArchivedThreads getPublicArchivedThreads(long channelId, long before, int limit) {
+		Logger logger = Utils.getLogger(JavacordUtils.class, Level.TRACE); // TODO: Remove
+		logger.trace("getPublicArchivedThreads - channelId: " + channelId + " before: " + before + " limit: " + limit);
 		String channelIdStr = String.valueOf(channelId);
 		String beforeStr = Instant.ofEpochSecond(before).toString();
 		String limitStr = String.valueOf(limit);
