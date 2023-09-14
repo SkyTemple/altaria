@@ -139,7 +139,7 @@ public class JavacordUtils {
 				throw new AsyncOperationException(e);
 			}
 			for (ServerThreadChannel thread : currentThreads) {
-				getThreadsBefore = thread.getId();
+				getThreadsBefore = DiscordUtils.snowflakeToTimestamp(thread.getId());
 
 				// TODO: Remove after testing with a channel with many archived threads
 				if (ret.contains(thread)) {
