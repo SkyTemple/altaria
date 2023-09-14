@@ -17,7 +17,6 @@
 
 package org.skytemple.altaria.utils;
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.DiscordEntity;
@@ -95,7 +94,7 @@ public class JavacordUtils {
 		long endTime) throws AsyncOperationException {
 		Server server = ExtConfig.get().getServer();
 		List<ServerThreadChannel> ret = new ArrayList<>();
-		Logger logger = Utils.getLogger(DiscordUtils.class, Level.TRACE); // TODO: Remove
+		Logger logger = Utils.getLogger(DiscordUtils.class);
 
 		// Get public threads from the server (they can't be obtained from a channel directly)
 		List<ServerThreadChannel> serverThreads;
@@ -141,14 +140,6 @@ public class JavacordUtils {
 			for (ServerThreadChannel thread : currentThreads) {
 				getThreadsBefore = DiscordUtils.snowflakeToTimestamp(thread.getId());
 
-				// TODO: Remove after testing with a channel with many archived threads
-				if (ret.contains(thread)) {
-					done = true;
-					logger.warn("Received duplicate thread \"" + thread.getName() + "\" when looping private threads! " +
-						"Further threads will be skipped.");
-					break;
-				}
-
 				if (thread.getMetadata().getArchiveTimestamp().getEpochSecond() >= startTime) {
 					long threadCreationTime = DiscordUtils.snowflakeToTimestamp(thread.getId());
 					if (threadCreationTime < endTime) {
@@ -183,8 +174,6 @@ public class JavacordUtils {
 	 * @return List of threads
 	 */
 	public static ArchivedThreads getPublicArchivedThreads(long channelId, long before, int limit) {
-		Logger logger = Utils.getLogger(JavacordUtils.class, Level.TRACE); // TODO: Remove
-		logger.trace("getPublicArchivedThreads - channelId: " + channelId + " before: " + before + " limit: " + limit);
 		String channelIdStr = String.valueOf(channelId);
 		String beforeStr = Instant.ofEpochSecond(before).toString();
 		String limitStr = String.valueOf(limit);
