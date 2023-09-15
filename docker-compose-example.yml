@@ -2,6 +2,7 @@ version: '3'
 services:
   altaria:
     build: .
+    restart: unless-stopped
     environment:
       # Discord bot token
       BOT_TOKEN: "..."
