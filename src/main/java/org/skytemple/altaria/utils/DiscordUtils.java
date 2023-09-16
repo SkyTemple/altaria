@@ -87,6 +87,6 @@ public class DiscordUtils {
 	 */
 	public static void sendJsonResult(MessageSender sender, boolean success, String resultStr) {
 		String status = success ? "success" : "error";
-		sender.send("{\"status\": \"" + status + "\", \"result: " + resultStr + "\"}");
+		sender.send("{\"status\": \"" + status + "\", \"result\": \"" + resultStr + "\"}");
 	}
 }
