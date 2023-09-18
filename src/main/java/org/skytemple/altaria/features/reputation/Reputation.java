@@ -74,13 +74,15 @@ public class Reputation {
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add points to a user",
 				Arrays.asList(
 					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive the GP", true),
-					SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give (> 0)", true)
+					SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give (> 0, " +
+						"default 1)", false)
 				)
 			),
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "take", "Take points from a user",
 				Arrays.asList(
 					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will lose the GP", true),
-					SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to take (> 0)", true)
+					SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to take (> 0, " +
+						"default 1)", false)
 				)
 			)
 		))
@@ -145,8 +147,11 @@ public class Reputation {
 		if (command[0].equals("gp")) {
 			if (command[1].equals("add") || command[1].equals("take")) {
 				User user = arguments.getCachedUser("user", true);
-				Integer amount = arguments.getInteger("amount", true);
+				Integer amount = arguments.getInteger("amount", false);
 				if (arguments.success()) {
+					if (amount == null) {
+						amount = 1;
+					}
 					if (command[1].equals("add")) {
 						new GiveGpCommand(rdb, user, amount, sender, sender).run();
 					} else {
