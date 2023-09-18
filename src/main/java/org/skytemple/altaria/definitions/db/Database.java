@@ -140,7 +140,7 @@ public class Database {
 		String url = "jdbc:mysql://" + host + ":" + port + "/" + database;
 		try {
 			Connection connection = DriverManager.getConnection(url, user, password);
-			logger.info("Database connection successful");
+			logger.debug("Database connection successful");
 			return connection;
 		} catch (SQLException e) {
 			throw new DbOperationException("Database connection failed", e);
