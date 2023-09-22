@@ -40,7 +40,7 @@ public class GetGpInterfaceCommand extends GetGpCommand {
 	public void run() {
 		try {
 			int amount = rdb.getPoints(user.getId());
-			DiscordUtils.sendJsonResult(resultSender, true, String.valueOf(amount));
+			DiscordUtils.sendJsonResult(resultSender, true, amount);
 		} catch (DbOperationException e) {
 			DiscordUtils.sendJsonResult(resultSender, false, "Error trying to run the command");
 			new ErrorHandler(e).sendDefaultMessage(errorSender).printToErrorChannel().run();

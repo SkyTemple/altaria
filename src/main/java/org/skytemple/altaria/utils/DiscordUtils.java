@@ -81,12 +81,22 @@ public class DiscordUtils {
 	}
 
 	/**
-	 * Sends a JSON message through the specified message sender with the result of a command
+	 * Sends a JSON message through the specified message sender with the result of a command as a string
 	 * @param success True if the command was successful
-	 * @param resultStr Result string to include in the message
+	 * @param result Result string to include in the message
 	 */
-	public static void sendJsonResult(MessageSender sender, boolean success, String resultStr) {
+	public static void sendJsonResult(MessageSender sender, boolean success, String result) {
 		String status = success ? "success" : "error";
-		sender.send("{\"status\": \"" + status + "\", \"result\": \"" + resultStr + "\"}");
+		sender.send("{\"status\": \"" + status + "\", \"result\": \"" + result + "\"}");
+	}
+
+	/**
+	 * Sends a JSON message through the specified message sender with the result of a command as an integer
+	 * @param success True if the command was successful
+	 * @param result Result integer to include in the message
+	 */
+	public static void sendJsonResult(MessageSender sender, boolean success, int result) {
+		String status = success ? "success" : "error";
+		sender.send("{\"status\": \"" + status + "\", \"result\": " + result + "}");
 	}
 }
