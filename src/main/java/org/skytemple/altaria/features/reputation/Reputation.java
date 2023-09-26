@@ -94,7 +94,8 @@ public class Reputation {
 		SlashCommand.with("getgp", "Guild point user commands", Arrays.asList(
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check the " +
 				"amount of points a user has", Collections.singletonList(
-					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User whose GP will be checked", true)
+					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User whose GP will be checked. " +
+						"Omit to check your own.", false)
 				)
 			),
 			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "View the full points " +
@@ -164,8 +165,11 @@ public class Reputation {
 			}
 		} else if (command[0].equals("getgp")) {
 			if (command[1].equals("check")) {
-				User user = arguments.getCachedUser("user", true);
+				User user = arguments.getCachedUser("user", false);
 				if (arguments.success()) {
+					if (user == null) {
+						user = interaction.getUser();
+					}
 					new GetGpCommand(rdb, user, sender, sender).run();
 				}
 			} else if (command[1].equals("list")) {
