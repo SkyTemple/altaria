@@ -44,16 +44,17 @@ public class MultiGpClearCommand implements Command {
 		this.user = user;
 		this.cmdUserId = cmdUserId;
 		this.resultSender = resultSender;
+		resultSender.setEphemeral();
 	}
 
 	@Override
 	public void run() {
 		MultiGpList gpList = multiGpCollection.get(cmdUserId);
 		if (gpList == null) {
-			resultSender.setEphemeral().setText("The multi-GP list is empty!").send();
+			resultSender.send("The multi-GP list is empty!");
 		} else {
 			gpList.remove(user.getId());
-			resultSender.setEphemeral().setText("**" + user.getName() + "** removed from the multi-GP list.").send();
+			resultSender.send("**" + user.getName() + "** removed from the multi-GP list.");
 		}
 	}
 }

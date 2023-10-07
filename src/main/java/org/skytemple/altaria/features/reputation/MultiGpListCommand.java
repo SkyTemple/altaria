@@ -43,20 +43,21 @@ public class MultiGpListCommand implements Command {
 		this.multiGpCollection = multiGpCollection;
 		this.userId = userId;
 		this.resultSender = resultSender;
+		resultSender.setEphemeral();
 	}
 
 	@Override
 	public void run() {
 		MultiGpList gpList = multiGpCollection.get(userId);
 		if (gpList == null) {
-			resultSender.setEphemeral().setText("The multi-GP list is empty!").send();
+			resultSender.send("The multi-GP list is empty!");
 		} else {
 			resultSender.addEmbed(gpList.toEmbed(true));
 			resultSender.addComponent(ActionRow.of(
 				Button.success(COMPONENT_LIST_GP_CONFIRM, "Confirm"),
 				Button.danger(COMPONENT_LIST_GP_CLEAR, "Clear all")
 			));
-			resultSender.setEphemeral().send();
+			resultSender.send();
 		}
 	}
 }

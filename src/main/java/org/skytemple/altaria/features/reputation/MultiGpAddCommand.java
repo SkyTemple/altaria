@@ -47,6 +47,7 @@ public class MultiGpAddCommand implements Command {
 		this.amount = amount;
 		this.cmdUserId = cmdUserId;
 		this.resultSender = resultSender;
+		resultSender.setEphemeral();
 	}
 
 	@Override
@@ -54,7 +55,7 @@ public class MultiGpAddCommand implements Command {
 		MultiGpList gpList = multiGpCollection.getOrNew(cmdUserId);
 		gpList.add(user.getId(), (double) amount);
 		multiGpCollection.put(cmdUserId, gpList);
-		resultSender.setEphemeral().setText("Added " + amount + " GP for **" + user.getName() + "** to the " +
-			"multi-GP list. Use /multigp list to confirm or cancel the operation.").send();
+		resultSender.send("Added " + amount + " GP for **" + user.getName() + "** to the multi-GP list. Use " +
+			"/multigp list to confirm or cancel the operation.");
 	}
 }
