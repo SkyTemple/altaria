@@ -28,8 +28,12 @@ import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
+import org.skytemple.altaria.utils.DurationParser;
 
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Objects;
 
 /**
  * Allows performing certain mod actions through bot commands. This can be used to avoid granting a permission that
@@ -51,6 +55,15 @@ public class ModActions {
 			SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "channel", "Channel to rename. Omit to rename the " +
 				"current channel.", false)
 		))
+		.setDefaultDisabled()
+		.createForServer(api, extConfig.getGuildId())
+		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
+		.join();
+
+		SlashCommand.with("slowmode", "Set slowmode for the current channel", Collections.singletonList(
+				SlashCommandOption.create(SlashCommandOptionType.STRING, "time", "Slowmode time. Format: <time><s/m/h>" +
+					"(eg: 10m). 0 to disable. ", true)
+			))
 		.setDefaultDisabled()
 		.createForServer(api, extConfig.getGuildId())
 		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
@@ -84,6 +97,29 @@ public class ModActions {
 					new RenameChannelCommand(interaction.getUser(), channel, name, sender, sender).run();
 				} else {
 					sender.send("Error trying to retrieve channel ID.");
+				}
+			}
+		} else if (command[0].equals("slowmode")) {
+			String timeStr = arguments.getString("time", true);
+			if (arguments.success()) {
+				Duration time;
+				if (Objects.equals(timeStr, "0")) {
+					time = Duration.ofSeconds(0);
+				} else {
+					try {
+						time = DurationParser.parse(timeStr);
+					} catch (IllegalArgumentException e) {
+						sender.setEphemeral().send("Invalid duration string. Must be a number followed by a single " +
+							"lowercase letter that represents the time unit. For example, \"10m\" for 10 minutes.");
+						return;
+					}
+				}
+
+				Channel channel = interaction.getChannel().orElse(null);
+				if (channel != null) {
+					new SlowmodeCommand(interaction.getUser(), channel, time, sender).run();
+				} else {
+					sender.setEphemeral().send("Error: Missing channel");
 				}
 			}
 		}
