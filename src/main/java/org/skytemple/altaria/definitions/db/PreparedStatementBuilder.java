@@ -68,6 +68,17 @@ public class PreparedStatementBuilder {
 		return this;
 	}
 
+	/**
+	 * Sets a parameter value to null
+	 * @param sqlColumnType Column type, as defined in {@link java.sql.Types}.
+	 * @return this
+	 */
+	public PreparedStatementBuilder setNull(int sqlColumnType) throws DbOperationException {
+		db.runWithReconnect((connection) -> statement.setNull(nextParamIndex, sqlColumnType), "Set null");
+		nextParamIndex++;
+		return this;
+	}
+
 	public ResultSet executeQuery() throws DbOperationException {
 		AtomicReference<ResultSet> result = new AtomicReference<>();
 		db.runWithReconnect((connection) -> result.set(statement.executeQuery()), sqlStatement);

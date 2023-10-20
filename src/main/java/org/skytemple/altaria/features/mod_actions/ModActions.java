@@ -62,7 +62,7 @@ public class ModActions {
 
 		SlashCommand.with("slowmode", "Set slowmode for the current channel", Collections.singletonList(
 				SlashCommandOption.create(SlashCommandOptionType.STRING, "time", "Slowmode time. Format: <time><s/m/h>" +
-					"(eg: 10m). 0 to disable. ", true)
+					"(eg: 10m). 0 to disable.", true)
 			))
 		.setDefaultDisabled()
 		.createForServer(api, extConfig.getGuildId())

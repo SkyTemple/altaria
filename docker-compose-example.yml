@@ -24,10 +24,13 @@ services:
       # Omit to disable the /rules command.
       RULES_MESSAGE_ID: "..."
       RULES_CHANNEL_ID: "..."
-      # True to timeout members striked by Vortex if the punishment action is "mute"
-      ENABLE_STRIKE_TIMEOUTS: "false"
-      # Channel where Vortex's strike messages are posted. Can be omitted if ENABLE_STRIKE_TIMEOUTS is false.
+      # True to punish members striked by Vortex when they reach a certain amount of strikes
+      ENABLE_STRIKE_PUNISHMENTS: "false"
+      # Channel where Vortex's strike messages are posted. Can be omitted if ENABLE_STRIKE_PUNISHMENTS is false.
       STRIKE_LOG_CHANNEL_ID: "..."
+      # Channel where Altaria will run >>silentban to temporarily ban a user through Vortex.
+      #  Can be omitted if ENABLE_STRIKE_PUNISHMENTS is false.
+      BAN_CMD_CHANNEL_ID: "..."
       # Channel where GP is awarded for contributions.
       SUPPORT_CHANNEL_ID: "..."
     depends_on:

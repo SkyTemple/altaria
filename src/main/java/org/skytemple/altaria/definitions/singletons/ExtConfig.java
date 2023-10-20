@@ -41,7 +41,8 @@ public class ExtConfig {
 	private static final String ENV_SPRITEBOT_GP_COMMANDS = "SPRITEBOT_GP_COMMANDS";
 	private static final String ENV_RULES_CHANNEL_ID = "RULES_CHANNEL_ID";
 	private static final String ENV_RULES_MESSAGE_ID = "RULES_MESSAGE_ID";
-	private static final String ENV_ENABLE_STRIKE_TIMEOUTS = "ENABLE_STRIKE_TIMEOUTS";
+	private static final String ENV_ENABLE_STRIKE_PUNISHMENTS = "ENABLE_STRIKE_PUNISHMENTS";
+	private static final String ENV_BAN_CMD_CHANNEL_ID = "BAN_CMD_CHANNEL_ID";
 	private static final String ENV_STRIKE_LOG_CHANNEL_ID = "STRIKE_LOG_CHANNEL_ID";
 	private static final String ENV_SUPPORT_CHANNEL_ID = "SUPPORT_CHANNEL_ID";
 
@@ -64,6 +65,7 @@ public class ExtConfig {
 	private Long rulesMessageId;
 	private Boolean enableStrikeTimeouts;
 	private Long strikeLogChannelId;
+	private Long banCmdChannelId;
 	private Long supportChannelId;
 
 	protected ExtConfig() {
@@ -255,8 +257,8 @@ public class ExtConfig {
 	 */
 	public boolean strikeTimeoutsEnabled() {
 		if (enableStrikeTimeouts == null) {
-			enableStrikeTimeouts = Env.getBoolean(ENV_ENABLE_STRIKE_TIMEOUTS).orElseThrow(() -> new FatalErrorException(
-				"The " + ENV_ENABLE_STRIKE_TIMEOUTS + " environment variable must be used to specify if the bot should " +
+			enableStrikeTimeouts = Env.getBoolean(ENV_ENABLE_STRIKE_PUNISHMENTS).orElseThrow(() -> new FatalErrorException(
+				"The " + ENV_ENABLE_STRIKE_PUNISHMENTS + " environment variable must be used to specify if the bot should " +
 					"automatically timeout striked users."));
 		}
 		return enableStrikeTimeouts;
@@ -271,6 +273,17 @@ public class ExtConfig {
 				"Strike log channel must be specified " + "on the " + ENV_STRIKE_LOG_CHANNEL_ID + " environment variable."));
 		}
 		return strikeLogChannelId;
+	}
+
+	/**
+	 * @return ID of the channel where >>silentban will be run to tempban users
+	 */
+	public long getBanCmdChannelId() {
+		if (banCmdChannelId == null) {
+			banCmdChannelId = Env.getLong(ENV_BAN_CMD_CHANNEL_ID).orElseThrow(() -> new FatalErrorException(
+				"Ban command channel must be specified " + "on the " + ENV_BAN_CMD_CHANNEL_ID + " environment variable."));
+		}
+		return banCmdChannelId;
 	}
 
 	/**

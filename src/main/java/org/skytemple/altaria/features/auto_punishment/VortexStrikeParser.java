@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.skytemple.altaria.features.auto_timeout;
+package org.skytemple.altaria.features.auto_punishment;
 
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;

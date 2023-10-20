@@ -20,6 +20,7 @@ package org.skytemple.altaria.definitions.senders;
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.component.HighLevelComponent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
@@ -63,6 +64,16 @@ public class ChannelMsgSender extends MessageSender {
 	@Override
 	public MessageSender addComponent(HighLevelComponent component) {
 		message.addComponents(component);
+		return this;
+	}
+
+	/**
+	 * Sets this message to be a reply of the specified message
+	 * @param messageToReplyTo Message to reply to
+	 * @return this
+	 */
+	public MessageSender replyTo(Message messageToReplyTo) {
+		message.replyTo(messageToReplyTo);
 		return this;
 	}
 
