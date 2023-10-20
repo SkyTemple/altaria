@@ -109,6 +109,11 @@ public class AutoPunishment {
 					sender.send("Error: Invalid action provided");
 					return;
 				}
+				if (action == PunishmentAction.BAN && durationStr != null) {
+					sender.send("Error: It's impossible to implement tempbans right now. Use Vortex's strike system " +
+						"for that.");
+					return;
+				}
 				if (durationStr == null) {
 					if (action.durationRequired()) {
 						sender.send("Error: A duration must be specified for this type of punishment.");

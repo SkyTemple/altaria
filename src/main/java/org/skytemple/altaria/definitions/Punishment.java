@@ -17,13 +17,11 @@
 
 package org.skytemple.altaria.definitions;
 
-import org.javacord.api.entity.channel.Channel;
-import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.skytemple.altaria.definitions.enums.PunishmentAction;
 import org.skytemple.altaria.definitions.exceptions.AsyncOperationException;
-import org.skytemple.altaria.definitions.singletons.ExtConfig;
+import org.skytemple.altaria.definitions.exceptions.IllegalOperationException;
 import org.skytemple.altaria.utils.DurationFormatter;
 
 import java.time.Duration;
@@ -104,6 +102,12 @@ public class Punishment {
 						throw new AsyncOperationException(e);
 					}
 				} else {
+					// Turns out Vortex ignores bot messages so there's no way to tempban someone
+					throw new IllegalOperationException("Tempbans not implemented");
+
+					// TODO: Wait until Discord/Vortex supports tempbanning, or manually implement tempbans
+					//  on Altaria.
+					/*
 					DurationFormatter formatter = new DurationFormatter(duration);
 
 					user.sendMessage("As a result of your strike, you have been temporarily banned from **" +
@@ -117,7 +121,7 @@ public class Punishment {
 							reason);
 					} else {
 						throw new AsyncOperationException("Set ban channel does not exist or is not a text channel");
-					}
+					}*/
 				}
 		}
 	}
