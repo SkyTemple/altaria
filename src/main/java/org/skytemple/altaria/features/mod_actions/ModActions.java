@@ -60,10 +60,8 @@ public class ModActions {
 		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
 		.join();
 
-		SlashCommand.with("renamethread", "Rename a thread", Arrays.asList(
-				SlashCommandOption.create(SlashCommandOptionType.STRING, "name", "New thread name", true),
-				SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "thread", "Thread to rename. Omit to rename " +
-					"the current thread.", false)
+		SlashCommand.with("renamethread", "Rename the current thread", Collections.singletonList(
+				SlashCommandOption.create(SlashCommandOptionType.STRING, "name", "New thread name", true)
 			))
 			.setDefaultDisabled()
 			.createForServer(api, extConfig.getGuildId())
@@ -111,11 +109,8 @@ public class ModActions {
 			}
 		} else if (command[0].equals("renamethread")) {
 			String name = arguments.getString("name", true);
-			Channel thread = arguments.getChannel("thread", false);
 			if (arguments.success()) {
-				if (thread == null) {
-					thread = interaction.getChannel().orElse(null);
-				}
+				Channel thread = interaction.getChannel().orElse(null);
 				if (thread != null) {
 					new RenameThreadCommand(interaction.getUser(), thread, name, sender, sender).run();
 				} else {
