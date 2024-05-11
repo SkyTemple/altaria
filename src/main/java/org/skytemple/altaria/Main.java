@@ -52,7 +52,7 @@ public class Main {
 
 		Reputation reputation = new Reputation(db);
 		ModActions modActions = new ModActions();
-		Rules ruels = new Rules();
+		Rules rules = new Rules();
 		AutoPunishment autoPunishment = new AutoPunishment(db);
 		SupportPoints supportPoints = new SupportPoints(db);
 

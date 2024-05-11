@@ -60,6 +60,16 @@ public class ModActions {
 		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
 		.join();
 
+		SlashCommand.with("renamethread", "Rename a thread", Arrays.asList(
+				SlashCommandOption.create(SlashCommandOptionType.STRING, "name", "New thread name", true),
+				SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "thread", "Thread to rename. Omit to rename " +
+					"the current thread.", false)
+			))
+			.setDefaultDisabled()
+			.createForServer(api, extConfig.getGuildId())
+			.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
+			.join();
+
 		SlashCommand.with("slowmode", "Set slowmode for the current channel", Collections.singletonList(
 				SlashCommandOption.create(SlashCommandOptionType.STRING, "time", "Slowmode time. Format: <time><s/m/h>" +
 					"(eg: 10m). 0 to disable.", true)
@@ -97,6 +107,19 @@ public class ModActions {
 					new RenameChannelCommand(interaction.getUser(), channel, name, sender, sender).run();
 				} else {
 					sender.send("Error trying to retrieve channel ID.");
+				}
+			}
+		} else if (command[0].equals("renamethread")) {
+			String name = arguments.getString("name", true);
+			Channel thread = arguments.getChannel("thread", false);
+			if (arguments.success()) {
+				if (thread == null) {
+					thread = interaction.getChannel().orElse(null);
+				}
+				if (thread != null) {
+					new RenameThreadCommand(interaction.getUser(), thread, name, sender, sender).run();
+				} else {
+					sender.send("Error trying to retrieve thread ID.");
 				}
 			}
 		} else if (command[0].equals("slowmode")) {

@@ -18,6 +18,7 @@
 package org.skytemple.altaria.features.mod_actions;
 
 import org.javacord.api.entity.channel.Channel;
+import org.javacord.api.entity.channel.ServerThreadChannel;
 import org.javacord.api.entity.user.User;
 import org.skytemple.altaria.definitions.Command;
 import org.skytemple.altaria.definitions.Constants;
@@ -26,12 +27,17 @@ import org.skytemple.altaria.definitions.senders.MessageSender;
 
 import java.util.concurrent.*;
 
+import static org.skytemple.altaria.utils.JavacordUtils.updateThreadName;
+
 public class RenameChannelCommand implements Command {
 	protected User user;
 	protected Channel channel;
 	protected String newName;
 	protected MessageSender resultSender;
 	protected MessageSender errorSender;
+
+	// If true, the command can only rename threads, not channels.
+	protected boolean allowThreadsOnly;
 
 	/**
 	 * Renames the specified channel
@@ -48,18 +54,27 @@ public class RenameChannelCommand implements Command {
 		this.newName = newName;
 		this.resultSender = resultSender;
 		this.errorSender = errorSender;
+
+		allowThreadsOnly = false;
 	}
 
 	@Override
 	public void run() {
 		channel.asServerChannel().ifPresentOrElse(serverChannel -> {
 			try {
-				if (serverChannel.asServerThreadChannel().isPresent()) {
-					errorSender.send("Error: This command cannot be used on threads.");
+				ServerThreadChannel thread = serverChannel.asServerThreadChannel().orElse(null);
+				if (thread != null) {
+					updateThreadName(thread, newName, "Command run by " + user.getName()).get(
+						Constants.ACTION_TIMEOUT, TimeUnit.SECONDS);
+					resultSender.send("Thread successfully renamed to **" + newName + "**.");
 				} else {
-					serverChannel.createUpdater().setName(newName).setAuditLogReason("Command run by " + user.getName())
-						.update().get(Constants.ACTION_TIMEOUT, TimeUnit.SECONDS);
-					resultSender.send("Channel successfully renamed to **" + newName + "**.");
+					if (allowThreadsOnly) {
+						errorSender.send("Error: This command can only be used to rename threads.");
+					} else {
+						serverChannel.createUpdater().setName(newName).setAuditLogReason("Command run by " + user.getName())
+							.update().get(Constants.ACTION_TIMEOUT, TimeUnit.SECONDS);
+						resultSender.send("Channel successfully renamed to **" + newName + "**.");
+					}
 				}
 			} catch (CompletionException | InterruptedException | ExecutionException e) {
 				new ErrorHandler(e).sendMessage("Error: Couldn't rename channel.", errorSender).printToErrorChannel().run();

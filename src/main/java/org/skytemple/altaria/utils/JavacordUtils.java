@@ -21,6 +21,8 @@ import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.DiscordEntity;
 import org.javacord.api.entity.channel.ServerThreadChannel;
+import org.javacord.api.entity.channel.ServerThreadChannelUpdater;
+import org.javacord.api.entity.channel.internal.ServerThreadChannelUpdaterDelegate;
 import org.javacord.api.entity.server.ArchivedThreads;
 import org.javacord.api.entity.server.Server;
 import org.skytemple.altaria.definitions.ErrorHandler;
@@ -28,6 +30,7 @@ import org.skytemple.altaria.definitions.exceptions.AsyncOperationException;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -213,5 +216,34 @@ public class JavacordUtils {
 			new ErrorHandler(e).printToErrorChannel().run();
 			return null;
 		}
+	}
+
+	/**
+	 * Working version of {@link ServerThreadChannel#updateName(String)}.
+	 * Renames a server thread
+	 * @param thread Thread to rename
+	 * @param name New thread name
+	 * @param auditLogReason Reason to log in the audit log, or null to skip logging a reason.
+	 * @return CompletableFuture to check if the update was successful
+	 */
+	public static CompletableFuture<Void> updateThreadName(ServerThreadChannel thread, String name, String auditLogReason) {
+		ServerThreadChannelUpdater updater = thread.createUpdater();
+		ServerThreadChannelUpdaterDelegate delegate;
+
+		//noinspection OverlyBroadCatchBlock
+		try {
+			Field delegateField = updater.getClass().getDeclaredField("delegate");
+			delegateField.setAccessible(true);
+			delegate = (ServerThreadChannelUpdaterDelegate) delegateField.get(updater);
+		} catch (ReflectiveOperationException e) {
+			new ErrorHandler(e).printToErrorChannel().run();
+			return CompletableFuture.failedFuture(e);
+		}
+
+		delegate.setName(name);
+		if (auditLogReason != null) {
+			delegate.setAuditLogReason(auditLogReason);
+		}
+		return delegate.update();
 	}
 }
