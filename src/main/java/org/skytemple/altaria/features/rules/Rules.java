@@ -30,6 +30,7 @@ import org.javacord.api.interaction.SlashCommandInteraction;
 import org.javacord.api.interaction.SlashCommandOption;
 import org.javacord.api.interaction.SlashCommandOptionType;
 import org.skytemple.altaria.definitions.CommandArgumentList;
+import org.skytemple.altaria.definitions.CommandCreator;
 import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
 import org.skytemple.altaria.definitions.senders.MessageSender;
@@ -61,7 +62,7 @@ public class Rules {
 	// Last time the rules map was updated
 	private Long lastRulesUpdate;
 
-	public Rules() {
+	public Rules(CommandCreator commandCreator) {
 		api = ApiGetter.get();
 		extConfig = ExtConfig.get();
 		rulesMessageId = extConfig.getRulesMessageId();
@@ -69,13 +70,12 @@ public class Rules {
 
 		if (rulesMessageId != null) {
 			// Register commands
-			SlashCommand.with("rule", "Display one of the server rules", Collections.singletonList(
-				// Technically not a number since rules can also have letters in their ID
-				SlashCommandOption.create(SlashCommandOptionType.STRING, "number", "Rule number", true)
-			))
-			.createForServer(api, extConfig.getGuildId())
-			.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-			.join();
+			commandCreator.registerCommand(
+				SlashCommand.with("rule", "Display one of the server rules", Collections.singletonList(
+					// Technically not a number since rules can also have letters in their ID
+					SlashCommandOption.create(SlashCommandOptionType.STRING, "number", "Rule number", true)
+				))
+			);
 
 			// Register listeners
 			api.addSlashCommandCreateListener(this::handleRuleCommand);

@@ -28,6 +28,7 @@ import org.javacord.api.interaction.SlashCommandInteraction;
 import org.javacord.api.interaction.SlashCommandOption;
 import org.javacord.api.interaction.SlashCommandOptionType;
 import org.skytemple.altaria.definitions.CommandArgumentList;
+import org.skytemple.altaria.definitions.CommandCreator;
 import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.Punishment;
 import org.skytemple.altaria.definitions.db.AutoPunishmentDB;
@@ -57,7 +58,7 @@ public class AutoPunishment {
 	private final AutoPunishmentDB db;
 	private final Logger logger;
 
-	public AutoPunishment(Database db) {
+	public AutoPunishment(Database db, CommandCreator commandCreator) {
 		api = ApiGetter.get();
 		extConfig = ExtConfig.get();
 		this.db = new AutoPunishmentDB(db);
@@ -65,24 +66,22 @@ public class AutoPunishment {
 
 		if (extConfig.strikeTimeoutsEnabled()) {
 			// Register commands
-			SlashCommand.with("punishment", "Set punishment to issue when a user reaches a given amount of strikes",
-			Arrays.asList(
-				SlashCommandOption.create(SlashCommandOptionType.LONG, "strikes", "Number of strikes", true),
-				SlashCommandOption.create(SlashCommandOptionType.STRING, "action", "Action to perform (\"none\", " +
-					"\"kick\", \"mute\" or \"ban\")", true),
-				SlashCommandOption.create(SlashCommandOptionType.STRING, "duration", "Punishment duration. Format: " +
-					"<time><s/m/h/d> (eg: 10m).", false)
-			))
-			.setDefaultDisabled()
-			.createForServer(api, extConfig.getGuildId())
-			.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-			.join();
+			commandCreator.registerCommand(
+				SlashCommand.with("punishment", "Set punishment to issue when a user reaches a given amount of strikes",
+				Arrays.asList(
+					SlashCommandOption.create(SlashCommandOptionType.LONG, "strikes", "Number of strikes", true),
+					SlashCommandOption.create(SlashCommandOptionType.STRING, "action", "Action to perform (\"none\", " +
+						"\"kick\", \"mute\" or \"ban\")", true),
+					SlashCommandOption.create(SlashCommandOptionType.STRING, "duration", "Punishment duration. Format: " +
+						"<time><s/m/h/d> (eg: 10m).", false)
+				))
+				.setDefaultDisabled()
+			);
 
-			SlashCommand.with("punishments", "Check punishments issued when a user reaches a given amount of strikes")
-			.setDefaultDisabled()
-			.createForServer(api, extConfig.getGuildId())
-			.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-			.join();
+			commandCreator.registerCommand(
+				SlashCommand.with("punishments", "Check punishments issued when a user reaches a given amount of strikes")
+				.setDefaultDisabled()
+			);
 
 			// Create listeners
 			api.addSlashCommandCreateListener(this::handleAutoPunishmentCommand);

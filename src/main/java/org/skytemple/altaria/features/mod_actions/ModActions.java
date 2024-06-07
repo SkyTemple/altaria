@@ -24,10 +24,9 @@ import org.javacord.api.event.interaction.MessageContextMenuCommandEvent;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.interaction.*;
 import org.skytemple.altaria.definitions.CommandArgumentList;
-import org.skytemple.altaria.definitions.ErrorHandler;
+import org.skytemple.altaria.definitions.CommandCreator;
 import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
-import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.utils.DurationParser;
 
 import java.time.Duration;
@@ -43,45 +42,39 @@ public class ModActions {
 	private static final String PIN_CONTEXT_ACTION = "Pin/Unpin message";
 
 	private final DiscordApi api;
-	private final ExtConfig extConfig;
 
-	public ModActions() {
+	public ModActions(CommandCreator commandCreator) {
 		api = ApiGetter.get();
-		extConfig = ExtConfig.get();
 
 		// Register commands
-		SlashCommand.with("renamechannel", "Rename a channel", Arrays.asList(
-			SlashCommandOption.create(SlashCommandOptionType.STRING, "name", "New channel name", true),
-			SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "channel", "Channel to rename. Omit to rename the " +
-				"current channel.", false)
-		))
-		.setDefaultDisabled()
-		.createForServer(api, extConfig.getGuildId())
-		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-		.join();
+		commandCreator.registerCommand(
+			SlashCommand.with("renamechannel", "Rename a channel", Arrays.asList(
+				SlashCommandOption.create(SlashCommandOptionType.STRING, "name", "New channel name", true),
+				SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "channel", "Channel to rename. Omit to rename the " +
+					"current channel.", false)
+			))
+			.setDefaultDisabled()
+		);
 
-		SlashCommand.with("renamethread", "Rename the current thread", Collections.singletonList(
+		commandCreator.registerCommand(
+			SlashCommand.with("renamethread", "Rename the current thread", Collections.singletonList(
 				SlashCommandOption.create(SlashCommandOptionType.STRING, "name", "New thread name", true)
 			))
 			.setDefaultDisabled()
-			.createForServer(api, extConfig.getGuildId())
-			.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-			.join();
+		);
 
-		SlashCommand.with("slowmode", "Set slowmode for the current channel", Collections.singletonList(
+		commandCreator.registerCommand(
+			SlashCommand.with("slowmode", "Set slowmode for the current channel", Collections.singletonList(
 				SlashCommandOption.create(SlashCommandOptionType.STRING, "time", "Slowmode time. Format: <time><s/m/h>" +
 					"(eg: 10m). 0 to disable.", true)
 			))
-		.setDefaultDisabled()
-		.createForServer(api, extConfig.getGuildId())
-		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-		.join();
-
-		MessageContextMenu.with(PIN_CONTEXT_ACTION)
 			.setDefaultDisabled()
-			.createForServer(api, extConfig.getGuildId())
-			.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-			.join();
+		);
+
+		commandCreator.registerCommand(
+			MessageContextMenu.with(PIN_CONTEXT_ACTION)
+				.setDefaultDisabled()
+		);
 
 		// Create listeners
 		api.addSlashCommandCreateListener(this::handleModActionCommand);

@@ -24,10 +24,7 @@ import org.javacord.api.event.interaction.MessageComponentCreateEvent;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.interaction.*;
-import org.skytemple.altaria.definitions.CommandArgumentList;
-import org.skytemple.altaria.definitions.ErrorHandler;
-import org.skytemple.altaria.definitions.MultiGpCollection;
-import org.skytemple.altaria.definitions.MultiGpList;
+import org.skytemple.altaria.definitions.*;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
@@ -62,7 +59,7 @@ public class Reputation {
 	// used the command. Each multi-GP list maps a user to the amount of GP they will receive.
 	private final MultiGpCollection multiGpCollection;
 
-	public Reputation(Database db) {
+	public Reputation(Database db, CommandCreator commandCreator) {
 		api = ApiGetter.get();
 		rdb = new ReputationDB(db);
 		extConfig = ExtConfig.get();
@@ -70,66 +67,63 @@ public class Reputation {
 		multiGpCollection = new MultiGpCollection();
 
 		// Register commands
-		SlashCommand.with("gp", "Guild point management commands", Arrays.asList(
-			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add points to a user",
-				Arrays.asList(
-					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive the GP", true),
-					SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give (> 0, " +
-						"default 1)", false)
+		commandCreator.registerCommand(
+			SlashCommand.with("gp", "Guild point management commands", Arrays.asList(
+				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add points to a user",
+					Arrays.asList(
+						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive the GP", true),
+						SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give (> 0, " +
+							"default 1)", false)
+					)
+				),
+				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "take", "Take points from a user",
+					Arrays.asList(
+						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will lose the GP", true),
+						SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to take (> 0, " +
+							"default 1)", false)
+					)
 				)
-			),
-			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "take", "Take points from a user",
-				Arrays.asList(
-					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will lose the GP", true),
-					SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to take (> 0, " +
-						"default 1)", false)
-				)
-			)
-		))
-		.setDefaultDisabled()
-		.createForServer(api, extConfig.getGuildId())
-		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-		.join();
+			))
+			.setDefaultDisabled()
+		);
 
-		SlashCommand.with("getgp", "Guild point user commands", Arrays.asList(
-			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check the " +
-				"amount of points a user has", Collections.singletonList(
-					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User whose GP will be checked. " +
-						"Omit to check your own.", false)
-				)
-			),
-			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "View the full points " +
-				"leaderboard, in descending order", Collections.singletonList(
-					SlashCommandOption.create(SlashCommandOptionType.LONG, "page", "Page to retrieve. Use negative " +
-						"numbers to retrieve a page starting from the end.", true)
-				))
-		))
-		.createForServer(api, extConfig.getGuildId())
-		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-		.join();
+		commandCreator.registerCommand(
+			SlashCommand.with("getgp", "Guild point user commands", Arrays.asList(
+				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check the " +
+					"amount of points a user has", Collections.singletonList(
+						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User whose GP will be checked. " +
+							"Omit to check your own.", false)
+					)
+				),
+				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "View the full points " +
+					"leaderboard, in descending order", Collections.singletonList(
+						SlashCommandOption.create(SlashCommandOptionType.LONG, "page", "Page to retrieve. Use negative " +
+							"numbers to retrieve a page starting from the end.", true)
+					))
+			))
+		);
 
-		SlashCommand.with("multigp", "Commands to give GP to multiple users at once. Run /multigp list to confirm or " +
-			"discard changes.", Arrays.asList(
-			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add/Remove GP. The " +
-				"operation will be added to the multi-GP list so it can be batch-executed later.", Arrays.asList(
-					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive/lose the " +
-					"GP", true),
-					SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give/take", true)
-				)
-			),
-			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "clear", "Remove a user from the " +
-				"multi-GP list",
-				Collections.singletonList(
-					SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User tp remove", true)
-				)
-			),
-			SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "Shows the multi-GP list, " +
-				"with options to confirm the commands or clear the list.")
-		))
-		.setDefaultDisabled()
-		.createForServer(api, extConfig.getGuildId())
-		.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-		.join();
+		commandCreator.registerCommand(
+			SlashCommand.with("multigp", "Commands to give GP to multiple users at once. Run /multigp list to confirm or " +
+				"discard changes.", Arrays.asList(
+				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add/Remove GP. The " +
+					"operation will be added to the multi-GP list so it can be batch-executed later.", Arrays.asList(
+						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive/lose the " +
+						"GP", true),
+						SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give/take", true)
+					)
+				),
+				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "clear", "Remove a user from the " +
+					"multi-GP list",
+					Collections.singletonList(
+						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User tp remove", true)
+					)
+				),
+				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "list", "Shows the multi-GP list, " +
+					"with options to confirm the commands or clear the list.")
+			))
+			.setDefaultDisabled()
+		);
 
 		// Register listeners
 		api.addSlashCommandCreateListener(this::handleGpCommand);

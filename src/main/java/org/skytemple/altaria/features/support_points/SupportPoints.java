@@ -31,10 +31,7 @@ import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.event.message.MessageDeleteEvent;
 import org.javacord.api.interaction.*;
-import org.skytemple.altaria.definitions.CommandArgumentList;
-import org.skytemple.altaria.definitions.ErrorHandler;
-import org.skytemple.altaria.definitions.MultiGpCollection;
-import org.skytemple.altaria.definitions.MultiGpList;
+import org.skytemple.altaria.definitions.*;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.db.SupportThreadsDB;
@@ -79,7 +76,7 @@ public class SupportPoints {
 	// ID of the channel used to calculate the points
 	private final long supportChannelId;
 
-	public SupportPoints(Database db) {
+	public SupportPoints(Database db, CommandCreator commandCreator) {
 		api = ApiGetter.get();
 		rdb = new ReputationDB(db);
 		sdb = new SupportThreadsDB(db);
@@ -93,37 +90,32 @@ public class SupportPoints {
 		Channel _supportChannel = api.getChannelById(supportChannelId).orElse(null);
 		if (_supportChannel instanceof ServerTextChannel || _supportChannel instanceof ServerForumChannel) {
 			// Register commands
-			SlashCommand.with("supportgp", "Commands to give GP for support contributions", Arrays.asList(
-				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check how many " +
-						"points would be awarded for contributions to a given thread",
-					Collections.singletonList(
-						SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "thread", "Thread to check", true)
+			commandCreator.registerCommand(
+				SlashCommand.with("supportgp", "Commands to give GP for support contributions", Arrays.asList(
+					SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check how many " +
+							"points would be awarded for contributions to a given thread",
+						Collections.singletonList(
+							SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "thread", "Thread to check", true)
+						)
+					),
+					SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "calc", "Calculate points for " +
+							"a date range",
+						Arrays.asList(
+							SlashCommandOption.create(SlashCommandOptionType.STRING, "startDate", "Start date " +
+								"(ISO-8601 Date + Time + Offset format, e.g. \"2011-12-03T10:15:30+01:00\")", true),
+							SlashCommandOption.create(SlashCommandOptionType.STRING, "endDate", "End date " +
+								"(ISO-8601 Date + Time + Offset format). Omit to use current date.", false)
+						)
 					)
-				),
-				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "calc", "Calculate points for " +
-						"a date range",
-					Arrays.asList(
-						SlashCommandOption.create(SlashCommandOptionType.STRING, "startDate", "Start date " +
-							"(ISO-8601 Date + Time + Offset format, e.g. \"2011-12-03T10:15:30+01:00\")", true),
-						SlashCommandOption.create(SlashCommandOptionType.STRING, "endDate", "End date " +
-							"(ISO-8601 Date + Time + Offset format). Omit to use current date.", false)
-					)
-				)
-			))
-			.setDefaultDisabled()
-			.createForServer(api, extConfig.getGuildId())
-			.exceptionally(e -> {
-				new ErrorHandler(e).printToErrorChannel().run();
-				return null;
-			})
-			.join();
+				))
+				.setDefaultDisabled()
+			);
 
 			// Register context actions
-			MessageContextMenu.with(SWITCH_GP_CONTEXT_ACTION)
+			commandCreator.registerCommand(
+				MessageContextMenu.with(SWITCH_GP_CONTEXT_ACTION)
 				.setDefaultDisabled()
-				.createForServer(api, extConfig.getGuildId())
-				.exceptionally(e -> {new ErrorHandler(e).printToErrorChannel().run(); return null;})
-				.join();
+			);
 
 			// Register listeners
 			api.addSlashCommandCreateListener(this::handleSupportGpCommand);

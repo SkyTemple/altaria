@@ -24,6 +24,7 @@ import org.javacord.api.entity.intent.Intent;
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.interaction.SlashCommandInteraction;
+import org.skytemple.altaria.definitions.CommandCreator;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.features.auto_punishment.AutoPunishment;
 import org.skytemple.altaria.features.mod_actions.ModActions;
@@ -50,11 +51,14 @@ public class Main {
 		// Register a listener to log commands
 		api.addSlashCommandCreateListener(Main::logCommand);
 
-		Reputation reputation = new Reputation(db);
-		ModActions modActions = new ModActions();
-		Rules rules = new Rules();
-		AutoPunishment autoPunishment = new AutoPunishment(db);
-		SupportPoints supportPoints = new SupportPoints(db);
+		// Create functional classes. A CommandCreator is used to bulk create the bot's commands.
+		try (CommandCreator commandCreator = new CommandCreator()){
+			Reputation reputation = new Reputation(db, commandCreator);
+			ModActions modActions = new ModActions(commandCreator);
+			Rules rules = new Rules(commandCreator);
+			AutoPunishment autoPunishment = new AutoPunishment(db, commandCreator);
+			SupportPoints supportPoints = new SupportPoints(db, commandCreator);
+		}
 
 		logger.info("Bot started. Invite URL: " + api.createBotInvite());
 	}
