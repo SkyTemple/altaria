@@ -20,7 +20,7 @@ dependencies {
     implementation("org.javacord:javacord:3.8.0")
     implementation("org.apache.logging.log4j:log4j-api:2.20.0")
     implementation("org.apache.logging.log4j:log4j-core:2.20.0")
-    implementation("com.mysql:mysql-connector-j:8.1.0")
+    implementation("com.mysql:mysql-connector-j:8.2.0")
 }
 
 tasks.test {
