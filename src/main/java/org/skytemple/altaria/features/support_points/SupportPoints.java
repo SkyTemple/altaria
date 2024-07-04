@@ -23,6 +23,7 @@ import org.javacord.api.entity.channel.*;
 import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.MessageFlag;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
+import org.javacord.api.entity.user.User;
 import org.javacord.api.event.interaction.MessageComponentCreateEvent;
 import org.javacord.api.event.interaction.MessageContextMenuCommandEvent;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
@@ -36,6 +37,7 @@ import org.skytemple.altaria.definitions.db.SupportThreadsDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.definitions.senders.DelayedInteractionMsgSender;
 import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
+import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.utils.JavacordUtils;
@@ -89,7 +91,7 @@ public class SupportPoints {
 		if (_supportChannel instanceof ServerTextChannel || _supportChannel instanceof ServerForumChannel) {
 			// Register commands
 			commandCreator.registerCommand(
-				SlashCommand.with("supportgp", "Commands to give GP for support contributions", Arrays.asList(
+				SlashCommand.with("supportgp", "Commands to handle GP awarded for support contributions", Arrays.asList(
 					SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "check", "Check how many " +
 							"points would be awarded for contributions to a given thread",
 						Collections.singletonList(
@@ -103,6 +105,15 @@ public class SupportPoints {
 								"(ISO-8601 Date + Time + Offset format, e.g. \"2011-12-03T10:15:30+01:00\")", true),
 							SlashCommandOption.create(SlashCommandOptionType.STRING, "endDate", "End date " +
 								"(ISO-8601 Date + Time + Offset format). Omit to use current date.", false)
+						)
+					),
+					SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "switch", "Enable/Disable " +
+							"support GP for a user in the current thread",
+						Arrays.asList(
+							SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User to enable/disable GP " +
+								"for", true),
+							SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "thread", "Thread where GP " +
+								"should be enabled/disabled for the user. Default: Current thread.", false)
 						)
 					)
 				))
@@ -130,11 +141,13 @@ public class SupportPoints {
 	private void handleSupportGpCommand(SlashCommandCreateEvent event) {
 		SlashCommandInteraction interaction = event.getSlashCommandInteraction();
 		String[] command = interaction.getFullCommandName().split(" ");
-		DelayedInteractionMsgSender sender = new DelayedInteractionMsgSender(interaction, true);
-		CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
+		long cmdUserId = interaction.getUser().getId();
 
 		if (command[0].equals("supportgp")) {
 			if (command[1].equals("check")) {
+				DelayedInteractionMsgSender sender = new DelayedInteractionMsgSender(interaction, true);
+				CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
+
 				Channel channel = arguments.getChannel("thread", true);
 				if (arguments.success()) {
 					ServerThreadChannel thread = channel.asServerThreadChannel().orElse(null);
@@ -146,6 +159,9 @@ public class SupportPoints {
 					}
 				}
 			} else if (command[1].equals("calc")) {
+				DelayedInteractionMsgSender sender = new DelayedInteractionMsgSender(interaction, true);
+				CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
+
 				String startDateStr = arguments.getString("startDate", true);
 				String endDateStr = arguments.getString("endDate", false);
 				if (arguments.success()) {
@@ -159,12 +175,35 @@ public class SupportPoints {
 						endTimestamp = System.currentTimeMillis() / 1000;
 					}
 					new SupportGpCalcCommand(sdb, supportChannelId, startTimestamp, endTimestamp, sender, sender, gpList -> {
-						long userId = interaction.getUser().getId();
-						multiGpCollection.put(userId, gpList);
-						userDates.put(userId, new DateRange(startTimestamp, endTimestamp));
+						multiGpCollection.put(cmdUserId, gpList);
+						userDates.put(cmdUserId, new DateRange(startTimestamp, endTimestamp));
 					}).run();
 				}
+			} else if (command[1].equals("switch")) {
+				InteractionMsgSender sender = new ImmediateInteractionMsgSender(interaction);
+				CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
+
+				User user = arguments.getCachedUser("user", true);
+				Channel channel = arguments.getChannel("thread", false);
+				if (arguments.success()) {
+					if (channel == null) {
+						channel = interaction.getChannel().orElse(null);
+					}
+					if (channel != null) {
+						ServerThreadChannel thread = channel.asServerThreadChannel().orElse(null);
+						if (thread != null) {
+							// Not worth creating a command class to pass 7 args and call a function
+							supportGpSwitcher.showSupportGpSwitchMenu(thread, user.getId(), user.getName(), cmdUserId,
+								sender, sender);
+						} else {
+							sender.send("Error: Specified channel is not a thread");
+						}
+					} else {
+						sender.send("Error: No channel specified and current channel could not be retrieved");
+					}
+				}
 			} else {
+				InteractionMsgSender sender = new ImmediateInteractionMsgSender(interaction);
 				sender.send("Error: Unrecognized support GP subcommand.");
 			}
 		}
