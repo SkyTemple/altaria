@@ -90,33 +90,43 @@ public class SupportGpSwitcher {
 	 * Confirms a GP switch action previously initiated with
 	 * {@link #showSupportGpSwitchMenu(ServerThreadChannel, long, String, long, InteractionMsgSender, InteractionMsgSender)}.
 	 * @param cmdUserId ID of the user who requested the GP switch
+	 * @param expectedEnable Whether the GP state is expected to switch from disabled to enabled or not. If the internal
+	 * state does not match what is expected, nothing will happen.
 	 * @param resultSender Sender used to send the message. Must be an {@link InteractionMsgSender}, since the message
 	 * will be ephemeral.
 	 * @param errorSender Sender used to send error messages that happen while running the command. Must be an
 	 * {@link InteractionMsgSender}, since the message will be ephemeral.
 	 * @return True if any kind of response was sent, false otherwise.
 	 */
-	public boolean confirmSupportGpSwitch(long cmdUserId, InteractionMsgSender resultSender,
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	public boolean confirmSupportGpSwitch(long cmdUserId, boolean expectedEnable, InteractionMsgSender resultSender,
 		InteractionMsgSender errorSender) {
 		try {
 			SupportGpAction action = supportGpActions.getOrDefault(cmdUserId, null);
 			if (action != null) {
-				boolean currentValue = sdb.shouldUserGetGP(action.userId, action.threadId, action.isOp);
-				if (action.enableGp == currentValue) {
-					// The correct state is already set. Maybe someone else ran the command at the same time. Do nothing.
+				if (action.enableGp != expectedEnable) {
+					// The queued action is of the opposite type of the expected one, the user probably clicked an old
+					// button. Do nothing.
 					return false;
 				} else {
-					try {
-						sdb.setUserSupportGp(action.userId, action.threadId, action.enableGp, action.isOp);
-						String actionStr = action.enableGp ? "now" : "no longer";
+					boolean currentValue = sdb.shouldUserGetGP(action.userId, action.threadId, action.isOp);
+					if (action.enableGp == currentValue) {
+						// The correct state is already set. Maybe someone else ran the command at the same time.
+						// Do nothing.
+						return false;
+					} else {
+						try {
+							sdb.setUserSupportGp(action.userId, action.threadId, action.enableGp, action.isOp);
+							String actionStr = action.enableGp ? "now" : "no longer";
 
-						resultSender.setEphemeral().setText(action.username + " will " + actionStr + " receive GP for " +
-							"their messages on this thread.").send();
-						supportGpActions.remove(cmdUserId);
-						return true;
-					} catch (DbOperationException e) {
-						new ErrorHandler(e).sendDefaultMessage(errorSender).printToErrorChannel().run();
-						return true;
+							resultSender.setEphemeral().setText(action.username + " will " + actionStr + " receive GP " +
+								"for their messages on this thread.").send();
+							supportGpActions.remove(cmdUserId);
+							return true;
+						} catch (DbOperationException e) {
+							new ErrorHandler(e).sendDefaultMessage(errorSender).printToErrorChannel().run();
+							return true;
+						}
 					}
 				}
 			} else {

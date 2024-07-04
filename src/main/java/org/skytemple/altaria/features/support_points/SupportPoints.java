@@ -196,10 +196,11 @@ public class SupportPoints {
 							supportGpSwitcher.showSupportGpSwitchMenu(thread, user.getId(), user.getName(), cmdUserId,
 								sender, sender);
 						} else {
-							sender.send("Error: Specified channel is not a thread");
+							sender.setEphemeral().send("Error: Specified channel is not a thread");
 						}
 					} else {
-						sender.send("Error: No channel specified and current channel could not be retrieved");
+						sender.setEphemeral().send("Error: No channel specified and current channel could not " +
+							"be retrieved");
 					}
 				}
 			} else {
@@ -238,8 +239,14 @@ public class SupportPoints {
 				}
 				break;
 			case COMPONENT_SUPPORT_GP_ENABLE:
+				if (!supportGpSwitcher.confirmSupportGpSwitch(cmdUserId, true, sender, sender)) {
+					interaction.acknowledge();
+				}
+				break;
 			case COMPONENT_SUPPORT_GP_DISABLE:
-				supportGpSwitcher.confirmSupportGpSwitch(cmdUserId, sender, sender);
+				if (!supportGpSwitcher.confirmSupportGpSwitch(cmdUserId, false, sender, sender)) {
+					interaction.acknowledge();
+				}
 				break;
 		}
 	}
