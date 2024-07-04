@@ -22,8 +22,6 @@ import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.*;
 import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.MessageFlag;
-import org.javacord.api.entity.message.component.ActionRow;
-import org.javacord.api.entity.message.component.Button;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.event.interaction.MessageComponentCreateEvent;
 import org.javacord.api.event.interaction.MessageContextMenuCommandEvent;
@@ -47,14 +45,15 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static org.skytemple.altaria.features.support_points.SupportGpSwitcher.COMPONENT_SUPPORT_GP_DISABLE;
+import static org.skytemple.altaria.features.support_points.SupportGpSwitcher.COMPONENT_SUPPORT_GP_ENABLE;
+
 /**
  * Class used to give GP based on activity on a support channel
  */
 public class SupportPoints {
 	// Component IDs
 	public static final String COMPONENT_SUPPORT_GP_CONFIRM = "supportGpConfirm";
-	public static final String COMPONENT_SUPPORT_GP_DISABLE = "supportGpDisable";
-	public static final String COMPONENT_SUPPORT_GP_ENABLE = "supportGpEnable";
 
 	// Context action IDs
 	private static final String SWITCH_GP_CONTEXT_ACTION = "Support GP switch";
@@ -69,9 +68,8 @@ public class SupportPoints {
 	private final MultiGpCollection multiGpCollection;
 	// Used to store the dates specified when running the "calc" command. One entry for each user who run the command.
 	private final Map<Long, DateRange> userDates;
-	// Used to store the action to perform after the "enable/disable GP" confirmation button is clicked. One entry
-	// for each user who ran the context menu action.
-	private final Map<Long, SupportGpAction> supportGpActions;
+	// Class used to handle thread support GP switch actions
+	private final SupportGpSwitcher supportGpSwitcher;
 
 	// ID of the channel used to calculate the points
 	private final long supportChannelId;
@@ -84,7 +82,7 @@ public class SupportPoints {
 		logger = Utils.getLogger(getClass());
 		multiGpCollection = new MultiGpCollection();
 		userDates = new TreeMap<>();
-		supportGpActions = new TreeMap<>();
+		supportGpSwitcher = new SupportGpSwitcher(sdb);
 		supportChannelId = extConfig.getSupportChannelId();
 
 		Channel _supportChannel = api.getChannelById(supportChannelId).orElse(null);
@@ -202,28 +200,7 @@ public class SupportPoints {
 				break;
 			case COMPONENT_SUPPORT_GP_ENABLE:
 			case COMPONENT_SUPPORT_GP_DISABLE:
-				boolean isEnableButton = componentId.equals(COMPONENT_SUPPORT_GP_ENABLE);
-				SupportGpAction action = supportGpActions.getOrDefault(cmdUserId, null);
-				if (action != null) {
-					if (action.enableGp == isEnableButton) {
-						try {
-							sdb.setUserSupportGp(action.userId, action.threadId, action.enableGp, action.isOp);
-							String actionStr = action.enableGp ? "now" : "no longer";
-
-							sender.setEphemeral().setText(action.username + " will " + actionStr + " receive GP for " +
-								"their messages on this thread.").send();
-							supportGpActions.remove(cmdUserId);
-						} catch (DbOperationException e) {
-							new ErrorHandler(e).sendDefaultMessage(sender).printToErrorChannel().run();
-						}
-					} else {
-						// The stored action does not match the button type. The user probably just pressed an old
-						// button again, do nothing.
-						interaction.acknowledge();
-					}
-				} else {
-					sender.setEphemeral().setText("Error: No action to confirm. Run the context menu action first.").send();
-				}
+				supportGpSwitcher.confirmSupportGpSwitch(cmdUserId, sender, sender);
 				break;
 		}
 	}
@@ -264,35 +241,11 @@ public class SupportPoints {
 			if (optChannel.isPresent()) {
 				ServerThreadChannel thread = optChannel.get().asServerThreadChannel().orElse(null);
 				if (thread != null && thread.getParent().getId() == extConfig.getSupportChannelId()) {
-					try {
-						MessageAuthor messageAuthor = interaction.getTarget().getAuthor();
-						long authorId = messageAuthor.getId();
-						String authorName = messageAuthor.getName();
-						long threadId = thread.getId();
-						boolean isOp = thread.getOwnerId() == authorId;
-						boolean currentValue = sdb.shouldUserGetGP(authorId, threadId, isOp);
-						String currentValueStr = currentValue ? "**does receive**" : "**does not receive**";
-						Button button;
-						if (currentValue) {
-							button = Button.danger(COMPONENT_SUPPORT_GP_DISABLE, "Disable support GP for this thread");
-						} else {
-							button = Button.success(COMPONENT_SUPPORT_GP_ENABLE, "Enable support GP for this thread");
-						}
-
-						// Save the parameters for later
-						supportGpActions.put(interaction.getUser().getId(),
-							new SupportGpAction(authorId, authorName, isOp, threadId, !currentValue));
-
-						sender.setEphemeral()
-							.setText(authorName + " currently " + currentValueStr + " GP for their contributions to " +
-								"this thread. Click the button below to change it.")
-							.addComponent(ActionRow.of(button))
-							.send();
-
-
-					} catch (DbOperationException e) {
-						new ErrorHandler(e).sendDefaultMessage(sender).printToErrorChannel().run();
-					}
+					MessageAuthor messageAuthor = interaction.getTarget().getAuthor();
+					long cmdUserId = interaction.getUser().getId();
+					long authorId = messageAuthor.getId();
+					String authorName = messageAuthor.getName();
+					supportGpSwitcher.showSupportGpSwitchMenu(thread, authorId, authorName, cmdUserId, sender, sender);
 				} else {
 					sender.setEphemeral().send("Error: This action can only be used in support threads.");
 				}
@@ -306,14 +259,4 @@ public class SupportPoints {
 	 * @param endTimestamp End timestamp
 	 */
 	private record DateRange(long startTimestamp, long endTimestamp) {}
-
-	/**
-	 * Used to store an action to perform when the "enable/disable GP" confirmation button is clicked
-	 * @param userId User ID
-	 * @param username Name of the user
-	 * @param isOp True if the user created the thread
-	 * @param threadId Thread ID
-	 * @param enableGp True if the user should get GP on the specified thread
-	 */
-	private record SupportGpAction(long userId, String username, boolean isOp, long threadId, boolean enableGp) {}
 }
