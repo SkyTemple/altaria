@@ -23,11 +23,16 @@ import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.definitions.senders.MessageSender;
+import org.skytemple.altaria.utils.Utils;
 
 public class ChangeGpCommand implements Command {
+	// When displaying the result message from this command, the amount shown will be rounded to this
+	// many decimal places.
+	protected static final int RESULT_MSG_ROUND_DECIMALS = 4;
+
 	protected ReputationDB rdb;
 	protected User user;
-	protected int amount;
+	protected double amount;
 	protected MessageSender resultSender;
 	protected MessageSender errorSender;
 
@@ -39,7 +44,7 @@ public class ChangeGpCommand implements Command {
 	 * @param resultSender Used to send result messages to the user
 	 * @param errorSender Used to send error messages to the user
 	 */
-	public ChangeGpCommand(ReputationDB rdb, User user, int amount, MessageSender resultSender, MessageSender errorSender) {
+	public ChangeGpCommand(ReputationDB rdb, User user, double amount, MessageSender resultSender, MessageSender errorSender) {
 		this.rdb = rdb;
 		this.user = user;
 		this.amount = amount;
@@ -64,10 +69,10 @@ public class ChangeGpCommand implements Command {
 	protected void sendResultMessage(MessageSender sender) throws DbOperationException {
 		String msg;
 		if (amount >= 0) {
-			msg = "Gave " + amount + " Guild Point(s) to ";
+			msg = "Gave " + Utils.gpAmountToString(amount, RESULT_MSG_ROUND_DECIMALS) + " Guild Point(s) to ";
 		} else {
-			msg = "Took " + amount * -1 + " Guild Point(s) from ";
+			msg = "Took " + Utils.gpAmountToString(amount * -1, RESULT_MSG_ROUND_DECIMALS) + " Guild Point(s) from ";
 		}
-		sender.send(msg + "**" + user.getName() + "** (current: " + rdb.getPoints(user.getId()) + ").");
+		sender.send(msg + "**" + user.getName() + "** (current: " + rdb.getPointsInt(user.getId()) + ").");
 	}
 }

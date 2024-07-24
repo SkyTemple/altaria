@@ -22,12 +22,17 @@ import org.skytemple.altaria.definitions.Command;
 import org.skytemple.altaria.definitions.MultiGpCollection;
 import org.skytemple.altaria.definitions.MultiGpList;
 import org.skytemple.altaria.definitions.senders.InteractionMsgSender;
+import org.skytemple.altaria.utils.Utils;
 
 public class MultiGpAddCommand implements Command {
+	// When displaying the result message from this command, the amount shown will be rounded to this
+	// many decimal places.
+	protected static final int RESULT_MSG_ROUND_DECIMALS = 4;
+
 	private final MultiGpCollection multiGpCollection;
 	private final long cmdUserId;
 	private final User user;
-	private final int amount;
+	private final double amount;
 	private final InteractionMsgSender resultSender;
 
 	/**
@@ -40,7 +45,7 @@ public class MultiGpAddCommand implements Command {
 	 * @param resultSender Used to send result messages to the user. Must be an interaction since the result message
 	 *                     is ephemeral
 	 */
-	public MultiGpAddCommand(MultiGpCollection multiGpCollection, User user, int amount, long cmdUserId,
+	public MultiGpAddCommand(MultiGpCollection multiGpCollection, User user, double amount, long cmdUserId,
 		InteractionMsgSender resultSender) {
 		this.multiGpCollection = multiGpCollection;
 		this.user = user;
@@ -53,9 +58,9 @@ public class MultiGpAddCommand implements Command {
 	@Override
 	public void run() {
 		MultiGpList gpList = multiGpCollection.getOrNew(cmdUserId);
-		gpList.add(user.getId(), (double) amount);
+		gpList.add(user.getId(), amount);
 		multiGpCollection.put(cmdUserId, gpList);
-		resultSender.send("Added " + amount + " GP for **" + user.getName() + "** to the multi-GP list. Use " +
-			"/multigp list to confirm or cancel the operation.");
+		resultSender.send("Added " + Utils.gpAmountToString(amount, RESULT_MSG_ROUND_DECIMALS) + " GP for **" +
+			user.getName() + "** to the multi-GP list. Use " + "/multigp list to confirm or cancel the operation.");
 	}
 }

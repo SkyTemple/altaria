@@ -35,9 +35,9 @@ public class Leaderboard {
 	 * Creates a leaderboard using from a list of point entries
 	 * @param pointEntries List of entries used to create the leaderboard
 	 */
-	public Leaderboard(List<ReputationDB.PointsEntry> pointEntries) {
+	public Leaderboard(List<ReputationDB.PointsEntryInt> pointEntries) {
 		data = new ArrayList<>();
-		for (ReputationDB.PointsEntry entry : pointEntries) {
+		for (ReputationDB.PointsEntryInt entry : pointEntries) {
 			data.add(new NamedPointsEntry("<@" + entry.userId() + ">", entry.points()));
 		}
 	}

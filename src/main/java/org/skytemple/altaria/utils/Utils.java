@@ -76,6 +76,34 @@ public class Utils {
 	}
 
 	/**
+	 * Rounds the given double value to the specified amount of decimal places
+	 * @param value Value to round
+	 * @param places Number of decimal places
+	 * @return Rounded value
+	 */
+	public static double round(Double value, int places) {
+		return Math.round(value * Math.pow(10, places)) / Math.pow(10, places);
+	}
+
+	/**
+	 * Given an amount of guild points, converts it to a string while applying certain rounding operations.
+	 * In particular, it will be rounded according to the number of decimal places specified. After that, if the
+	 * decimal part of the value is 0, it will be displayed as an integer.
+	 * @param amount Amount to display
+	 * @param decimalPlaces Number of decimal places to use to round the value
+	 * @return String representation of the amount to display
+	 */
+	public static String gpAmountToString(double amount, int decimalPlaces) {
+		double roundedAmount = round(amount, decimalPlaces);
+		long roundedAmountLong = Math.round(roundedAmount);
+		if (Math.abs(roundedAmount - roundedAmountLong) < Math.pow(10, decimalPlaces * -1)) {
+			return String.valueOf(roundedAmountLong);
+		} else {
+			return String.valueOf(roundedAmount);
+		}
+	}
+
+	/**
 	 * Given a map and a series of keys, removes all the keys present on the list from the map.
 	 * @param map Map to remove entrires from
 	 * @param removeList List containing the entries to remove

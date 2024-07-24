@@ -75,7 +75,7 @@ public class ListGpCommand implements Command {
 		if (leaderboard == null) {
 			// Get an up-to-date version of the leaderboard
 			try {
-				List<ReputationDB.PointsEntry> entries = rdb.getPoints();
+				List<ReputationDB.PointsEntryInt> entries = rdb.getPointsInt();
 				leaderboard = new Leaderboard(entries);
 			} catch (DbOperationException e) {
 				new ErrorHandler(e).sendDefaultMessage(errorSender).printToErrorChannel().run();

@@ -68,6 +68,12 @@ public class PreparedStatementBuilder {
 		return this;
 	}
 
+	public PreparedStatementBuilder setDouble(Double value) throws DbOperationException {
+		db.runWithReconnect((connection) -> statement.setDouble(nextParamIndex, value), "Set double: " + value);
+		nextParamIndex++;
+		return this;
+	}
+
 	/**
 	 * Sets a parameter value to null
 	 * @param sqlColumnType Column type, as defined in {@link java.sql.Types}.

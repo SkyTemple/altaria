@@ -30,7 +30,7 @@ public class TakeGpCommand extends ChangeGpCommand {
 	 * @param resultSender Used to send result messages to the user
 	 * @param errorSender Used to send error messages to the user
 	 */
-	public TakeGpCommand(ReputationDB rdb, User user, int amount, MessageSender resultSender, MessageSender errorSender) {
+	public TakeGpCommand(ReputationDB rdb, User user, double amount, MessageSender resultSender, MessageSender errorSender) {
 		super(rdb, user, amount, resultSender, errorSender);
 	}
 

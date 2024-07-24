@@ -72,14 +72,14 @@ public class Reputation {
 				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add points to a user",
 					Arrays.asList(
 						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive the GP", true),
-						SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give (> 0, " +
+						SlashCommandOption.create(SlashCommandOptionType.DECIMAL, "amount", "Amount of GP to give (> 0, " +
 							"default 1)", false)
 					)
 				),
 				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "take", "Take points from a user",
 					Arrays.asList(
 						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will lose the GP", true),
-						SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to take (> 0, " +
+						SlashCommandOption.create(SlashCommandOptionType.DECIMAL, "amount", "Amount of GP to take (> 0, " +
 							"default 1)", false)
 					)
 				)
@@ -110,7 +110,7 @@ public class Reputation {
 					"operation will be added to the multi-GP list so it can be batch-executed later.", Arrays.asList(
 						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive/lose the " +
 						"GP", true),
-						SlashCommandOption.create(SlashCommandOptionType.LONG, "amount", "Amount of GP to give/take", true)
+						SlashCommandOption.create(SlashCommandOptionType.DECIMAL, "amount", "Amount of GP to give/take", true)
 					)
 				),
 				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "clear", "Remove a user from the " +
@@ -142,10 +142,10 @@ public class Reputation {
 		if (command[0].equals("gp")) {
 			if (command[1].equals("add") || command[1].equals("take")) {
 				User user = arguments.getCachedUser("user", true);
-				Integer amount = arguments.getInteger("amount", false);
+				Double amount = arguments.getDouble("amount", false);
 				if (arguments.success()) {
 					if (amount == null) {
-						amount = 1;
+						amount = 1.0;
 					}
 					if (command[1].equals("add")) {
 						new GiveGpCommand(rdb, user, amount, sender, sender).run();
@@ -189,7 +189,7 @@ public class Reputation {
 
 			if (command[1].equals("add")) {
 				User user = arguments.getCachedUser("user", true);
-				Integer amount = arguments.getInteger("amount", true);
+				Double amount = arguments.getDouble("amount", true);
 				if (arguments.success()) {
 					new MultiGpAddCommand(multiGpCollection, user, amount, cmdUserId, sender).run();
 				}
@@ -255,7 +255,7 @@ public class Reputation {
 				if (message.length == 4) {
 					try {
 						long userId = Long.parseLong(message[1]);
-						int points = Integer.parseInt(message[2]);
+						double points = Double.parseDouble(message[2]);
 						long channelId = Long.parseLong(message[3]);
 
 						User user = api.getUserById(userId).join();

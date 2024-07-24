@@ -32,7 +32,7 @@ public class TakeGpInterfaceCommand extends ChangeGpInterfaceCommand {
 	 * @param privateResultSender Used to send the message with the result of the command in JSON format
 	 * @param errorSender Used to send error messages
 	 */
-	public TakeGpInterfaceCommand(ReputationDB rdb, User user, int amount, MessageSender publicResultSender,
+	public TakeGpInterfaceCommand(ReputationDB rdb, User user, double amount, MessageSender publicResultSender,
 		MessageSender privateResultSender, MessageSender errorSender) {
 		super(rdb, user, amount, publicResultSender, privateResultSender, errorSender);
 	}

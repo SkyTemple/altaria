@@ -19,6 +19,7 @@ package org.skytemple.altaria.definitions.db;
 
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
 import org.skytemple.altaria.definitions.exceptions.FatalErrorException;
+import org.skytemple.altaria.utils.Utils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,7 +41,7 @@ public class ReputationDB {
 		try {
 			db.updateWithReconnect("CREATE TABLE IF NOT EXISTS " + REPUTATION_TABLE_NAME + "(" +
 				"`discord_id` BIGINT(30) UNSIGNED NOT NULL," +
-				"`points` INT(20) SIGNED NOT NULL," +
+				"`points` DOUBLE SIGNED NOT NULL," +
 				"PRIMARY KEY (`discord_id`));");
 		} catch (DbOperationException e) {
 			throw new FatalErrorException("Cannot create reputation table", e);
@@ -52,16 +53,25 @@ public class ReputationDB {
 	 * @param userId User to check
 	 * @return User points
 	 */
-	public int getPoints(long userId) throws DbOperationException {
+	public double getPoints(long userId) throws DbOperationException {
 		try (ResultSet result = new PreparedStatementBuilder(db, "SELECT IFNULL((SELECT points FROM " +
 			REPUTATION_TABLE_NAME + " " + "WHERE discord_id = ?), 0)")
 			.setLong(userId)
 			.executeQuery()) {
 			result.next();
-			return result.getInt(1);
+			return result.getDouble(1);
 		} catch (SQLException e) {
 			throw new DbOperationException(e);
 		}
+	}
+
+	/**
+	 * Returns the amount of points a certain user has, as an integer
+	 * @param userId User to check
+	 * @return User points, rounded down to the nearest integer
+	 */
+	public int getPointsInt(long userId) throws DbOperationException {
+		return Utils.doubleToInt(getPoints(userId));
 	}
 
 	/**
@@ -73,10 +83,22 @@ public class ReputationDB {
 		try (ResultSet result = db.queryWithReconnect("SELECT discord_id, points FROM " + REPUTATION_TABLE_NAME +
 			" ORDER BY points DESC")) {
 			while (result.next()) {
-				res.add(new PointsEntry(result.getLong(1), result.getInt(2)));
+				res.add(new PointsEntry(result.getLong(1), result.getDouble(2)));
 			}
 		} catch (SQLException e) {
 			throw new DbOperationException(e);
+		}
+		return res;
+	}
+
+	/**
+	 * Gets the amount of points of all the users, as an integer, sorted by amount (desc)
+	 * @return Lis of (user, points) pairs
+	 */
+	public List<PointsEntryInt> getPointsInt() throws DbOperationException {
+		List<PointsEntryInt> res = new ArrayList<>();
+		for (PointsEntry entry : getPoints()) {
+			res.add(new PointsEntryInt(entry.userId, Utils.doubleToInt(entry.points)));
 		}
 		return res;
 	}
@@ -86,23 +108,28 @@ public class ReputationDB {
 	 * @param userId ID of the user to give the points to
 	 * @param amount Amount of points to give
 	 */
-	public void addPoints(long userId, int amount) throws DbOperationException {
+	public void addPoints(long userId, double amount) throws DbOperationException {
 		int result = new PreparedStatementBuilder(db, "UPDATE " + REPUTATION_TABLE_NAME + " SET points = points + ? " +
 			"WHERE discord_id = ?")
-			.setInt(amount)
+			.setDouble(amount)
 			.setLong(userId)
 			.executeUpdate();
 		if (result == 0) {
 			new PreparedStatementBuilder(db, "INSERT INTO " + REPUTATION_TABLE_NAME + "(discord_id, points) " +
 				"VALUES(?, ?)")
 				.setLong(userId)
-				.setInt(amount)
+				.setDouble(amount)
 				.executeUpdate();
 		}
 	}
 
 	/**
-	 * Used to return a pair of user ID and points amount
+	 * Used to return a pair of user ID and points amount (as a double)
 	 */
-	public record PointsEntry(long userId, int points) {}
+	public record PointsEntry(long userId, double points) {}
+
+	/**
+	 * Used to return a pair of user ID and points amount (as an integer)
+	 */
+	public record PointsEntryInt(long userId, int points) {}
 }
