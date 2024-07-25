@@ -58,16 +58,12 @@ public class GpAmountParser {
 
 		// Since String.split excludes trailing empty groups, we have to check this manually
 		if (amountStr.endsWith("+")) {
-			throw new GpAmountParseException("\"" + amountStr + "\" is not a valid GP amount.");
+			throw new GpAmountParseException();
 		}
 
 		String[] terms = amountStr.split("\\+");
 		for (String term : terms) {
-			try {
-				amount += parseTerm(term);
-			} catch (GpAmountParseException e) {
-				throw new GpAmountParseException("\"" + amountStr + "\" is not a valid GP amount.", e);
-			}
+			amount += parseTerm(term);
 		}
 		return amount;
 	}

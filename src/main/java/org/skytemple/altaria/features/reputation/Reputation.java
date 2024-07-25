@@ -153,8 +153,8 @@ public class Reputation {
 						try {
 							amount = GpAmountParser.parseGpAmount(amountStr);
 						} catch (GpAmountParseException e) {
-							sender.send("Error: " + e.getMessage() +
-								" Check [the wiki](<https://github.com/SkyTemple/altaria/wiki/GP-command-syntax>) " +
+							sender.send("Error: Invalid GP amount. " +
+								"Check [the wiki](<https://github.com/SkyTemple/altaria/wiki/GP-command-syntax>) " +
 								"for details about the syntax.");
 							return;
 						}

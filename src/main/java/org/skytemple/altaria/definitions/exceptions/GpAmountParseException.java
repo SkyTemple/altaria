@@ -21,6 +21,9 @@ package org.skytemple.altaria.definitions.exceptions;
  * Thrown when an attempt to parse a string that represents a GP amount fails
  */
 public class GpAmountParseException extends Exception {
+	public GpAmountParseException() {
+	}
+
 	public GpAmountParseException(String message) {
 		super(message);
 	}

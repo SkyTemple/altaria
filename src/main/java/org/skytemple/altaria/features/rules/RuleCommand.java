@@ -52,7 +52,7 @@ public class RuleCommand implements Command {
 			EmbedBuilder embed = new EmbedBuilder().setDescription(rule).setColor(Color.BLUE);
 			resultSender.addEmbed(embed).send();
 		} else {
-			errorSender.send("Error: Rule " + ruleNumber + " not found.");
+			errorSender.send("Error: Rule `" + ruleNumber + "` not found.");
 		}
 	}
 }
