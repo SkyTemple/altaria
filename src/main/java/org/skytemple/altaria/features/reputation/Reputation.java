@@ -28,6 +28,7 @@ import org.skytemple.altaria.definitions.*;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
+import org.skytemple.altaria.definitions.exceptions.GpAmountParseException;
 import org.skytemple.altaria.definitions.senders.ChannelMsgSender;
 import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
 import org.skytemple.altaria.definitions.senders.NullMsgSender;
@@ -72,14 +73,14 @@ public class Reputation {
 				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "add", "Add points to a user",
 					Arrays.asList(
 						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will receive the GP", true),
-						SlashCommandOption.create(SlashCommandOptionType.DECIMAL, "amount", "Amount of GP to give (> 0, " +
+						SlashCommandOption.create(SlashCommandOptionType.STRING, "amount", "Amount of GP to give (> 0, " +
 							"default 1)", false)
 					)
 				),
 				SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "take", "Take points from a user",
 					Arrays.asList(
 						SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User that will lose the GP", true),
-						SlashCommandOption.create(SlashCommandOptionType.DECIMAL, "amount", "Amount of GP to take (> 0, " +
+						SlashCommandOption.create(SlashCommandOptionType.STRING, "amount", "Amount of GP to take (> 0, " +
 							"default 1)", false)
 					)
 				)
@@ -142,11 +143,23 @@ public class Reputation {
 		if (command[0].equals("gp")) {
 			if (command[1].equals("add") || command[1].equals("take")) {
 				User user = arguments.getCachedUser("user", true);
-				Double amount = arguments.getDouble("amount", false);
+				String amountStr = arguments.getString("amount", false);
 				if (arguments.success()) {
-					if (amount == null) {
+					// Convert amount to double
+					double amount;
+					if (amountStr == null) {
 						amount = 1.0;
+					} else {
+						try {
+							amount = GpAmountParser.parseGpAmount(amountStr);
+						} catch (GpAmountParseException e) {
+							sender.send("Error: " + e.getMessage() +
+								" Check [the wiki](<https://github.com/SkyTemple/altaria/wiki/GP-command-syntax>) " +
+								"for details about the syntax.");
+							return;
+						}
 					}
+
 					if (command[1].equals("add")) {
 						new GiveGpCommand(rdb, user, amount, sender, sender).run();
 					} else {
@@ -255,8 +268,16 @@ public class Reputation {
 				if (message.length == 4) {
 					try {
 						long userId = Long.parseLong(message[1]);
-						double points = Double.parseDouble(message[2]);
 						long channelId = Long.parseLong(message[3]);
+						String pointsStr = message[2];
+						double points;
+						try {
+							points = GpAmountParser.parseGpAmount(pointsStr);
+						} catch (GpAmountParseException e) {
+							DiscordUtils.sendJsonResult(privateResultSender, false,
+								"Cannot parse GP amount: " + e.getMessage());
+							return;
+						}
 
 						User user = api.getUserById(userId).join();
 						ChannelMsgSender publicResultSender = new ChannelMsgSender(channelId);
