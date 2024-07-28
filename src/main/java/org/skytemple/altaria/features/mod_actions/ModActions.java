@@ -50,8 +50,8 @@ public class ModActions {
 		commandCreator.registerCommand(
 			SlashCommand.with("renamechannel", "Rename a channel", Arrays.asList(
 				SlashCommandOption.create(SlashCommandOptionType.STRING, "name", "New channel name", true),
-				SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "channel", "Channel to rename. Omit to rename the " +
-					"current channel.", false)
+				SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "channel", "Channel to rename. Omit to " +
+					"rename the current channel.", false)
 			))
 			.setDefaultDisabled()
 		);
@@ -59,6 +59,15 @@ public class ModActions {
 		commandCreator.registerCommand(
 			SlashCommand.with("renamethread", "Rename the current thread", Collections.singletonList(
 				SlashCommandOption.create(SlashCommandOptionType.STRING, "name", "New thread name", true)
+			))
+			.setDefaultDisabled()
+		);
+
+		commandCreator.registerCommand(
+			SlashCommand.with("channeltopic", "Change the topic of a channel", Arrays.asList(
+				SlashCommandOption.create(SlashCommandOptionType.STRING, "topic", "New channel topic", true),
+				SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "channel", "Channel to edit. Omit to " +
+					"change the topic of the current channel.", false)
 			))
 			.setDefaultDisabled()
 		);
@@ -96,6 +105,19 @@ public class ModActions {
 				}
 				if (channel != null) {
 					new RenameChannelCommand(interaction.getUser(), channel, name, sender, sender).run();
+				} else {
+					sender.send("Error trying to retrieve channel ID.");
+				}
+			}
+		} else if (command[0].equals("channeltopic")) {
+			String topic = arguments.getString("topic", true);
+			Channel channel = arguments.getChannel("channel", false);
+			if (arguments.success()) {
+				if (channel == null) {
+					channel = interaction.getChannel().orElse(null);
+				}
+				if (channel != null) {
+					new ChannelTopicCommand(interaction.getUser(), channel, topic, sender, sender).run();
 				} else {
 					sender.send("Error trying to retrieve channel ID.");
 				}
