@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 public class GpAmountParser {
 	private static final Pattern TERM_REGEX = Pattern.compile("^(?<amount>\\d+)(?<suffix>da|sa|oa|p|ap|sr)?$");
 
-	public static final double DUNGEON_SPRITE_ANIMATION_GP = 12/10.0;
+	public static final double DUNGEON_SPRITE_ANIMATION_GP = 12/13.0;
 	public static final double STARTER_SPRITE_ANIMATION_GP = 12/22.0;
 	public static final double OTHER_SPRITE_ANIMATION_GP = 1.0;
 	public static final double PORTRAIT_EMOTION_GP = 6/20.0;
