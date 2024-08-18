@@ -22,6 +22,7 @@ import org.javacord.api.entity.message.component.HighLevelComponent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.interaction.InteractionBase;
 import org.javacord.api.interaction.callback.InteractionImmediateResponseBuilder;
+import org.skytemple.altaria.definitions.exceptions.IllegalOperationException;
 
 /**
  * Used to immediately send a message in response to an interaction. Allows for up to 3 seconds of delay.
@@ -52,6 +53,12 @@ public class ImmediateInteractionMsgSender extends InteractionMsgSender {
 	public ImmediateInteractionMsgSender addComponent(HighLevelComponent component) {
 		response.addComponents(component);
 		return this;
+	}
+
+	@Override
+	public ImmediateInteractionMsgSender addAttachment(byte[] bytes, String filename) {
+		// I don't know if this is a Discord or a Javacord limitation
+		throw new IllegalOperationException("Immediate interaction message senders cannot contain attachments");
 	}
 
 	@Override

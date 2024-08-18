@@ -60,6 +60,12 @@ public class DelayedInteractionMsgSender extends InteractionMsgSender {
 		return this;
 	}
 
+	@Override
+	public DelayedInteractionMsgSender addAttachment(byte[] bytes, String filename) {
+		response.join().addAttachment(bytes, filename);
+		return this;
+	}
+
 	/**
 	 * Since this class requires that the ephemeral status is set when instantiating it, this method doesn't actually
 	 * change the ephemeral status.

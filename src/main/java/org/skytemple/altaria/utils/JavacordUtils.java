@@ -32,12 +32,11 @@ import org.skytemple.altaria.definitions.singletons.ExtConfig;
 
 import java.lang.reflect.Field;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 /**
  * Convenience methods and workarounds for Javacord operations
@@ -245,5 +244,15 @@ public class JavacordUtils {
 			delegate.setAuditLogReason(auditLogReason);
 		}
 		return delegate.update();
+	}
+
+	/**
+	 * @return Set containing the IDs of all banned users in the server
+	 * @throws ExecutionException If the ban retrieval operation failed
+	 * @throws InterruptedException If the ban retrieval operation failed
+	 */
+	public static Set<Long> getBannedUsersIDs() throws ExecutionException, InterruptedException {
+		Server server = ExtConfig.get().getServer();
+		return server.getBans().get().stream().map(ban -> ban.getUser().getId()).collect(Collectors.toSet());
 	}
 }

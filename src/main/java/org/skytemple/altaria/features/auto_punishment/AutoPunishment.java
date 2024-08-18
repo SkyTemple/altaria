@@ -27,10 +27,7 @@ import org.javacord.api.interaction.SlashCommand;
 import org.javacord.api.interaction.SlashCommandInteraction;
 import org.javacord.api.interaction.SlashCommandOption;
 import org.javacord.api.interaction.SlashCommandOptionType;
-import org.skytemple.altaria.definitions.CommandArgumentList;
-import org.skytemple.altaria.definitions.CommandCreator;
-import org.skytemple.altaria.definitions.ErrorHandler;
-import org.skytemple.altaria.definitions.Punishment;
+import org.skytemple.altaria.definitions.*;
 import org.skytemple.altaria.definitions.db.AutoPunishmentDB;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.enums.PunishmentAction;
@@ -40,6 +37,7 @@ import org.skytemple.altaria.definitions.senders.ChannelMsgSender;
 import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
+import org.skytemple.altaria.definitions.vortex.VortexStrikeParser;
 import org.skytemple.altaria.utils.DurationParser;
 import org.skytemple.altaria.utils.Utils;
 
@@ -51,7 +49,6 @@ import java.util.Arrays;
  * shortcomings, such as not being able to time-out members or tempban whithout automatically deleting messages.
  */
 public class AutoPunishment {
-	private static final long VORTEX_ID = 240254129333731328L;
 
 	private final DiscordApi api;
 	private final ExtConfig extConfig;
@@ -144,7 +141,7 @@ public class AutoPunishment {
 		String messageStr = strikeMessage.getContent();
 		ChannelMsgSender sender = new ChannelMsgSender(event.getChannel().getId());
 
-		if (event.getMessageAuthor().getId() == VORTEX_ID &&
+		if (event.getMessageAuthor().getId() == Constants.VORTEX_ID &&
 			event.getChannel().getId() == extConfig.getStrikeLogChannelId()) {
 			VortexStrikeParser.Strike strike = VortexStrikeParser.parse(messageStr);
 			if (strike != null) {

@@ -67,6 +67,12 @@ public class ChannelMsgSender extends MessageSender {
 		return this;
 	}
 
+	@Override
+	public MessageSender addAttachment(byte[] bytes, String filename) {
+		message.addAttachment(bytes, filename);
+		return this;
+	}
+
 	/**
 	 * Sets this message to be a reply of the specified message
 	 * @param messageToReplyTo Message to reply to

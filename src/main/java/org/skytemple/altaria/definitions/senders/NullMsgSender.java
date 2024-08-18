@@ -41,5 +41,10 @@ public class NullMsgSender extends MessageSender {
 	}
 
 	@Override
+	public MessageSender addAttachment(byte[] bytes, String filename) {
+		return this;
+	}
+
+	@Override
 	public void send() {}
 }

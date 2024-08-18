@@ -46,6 +46,17 @@ public abstract class MessageSender {
 	public abstract MessageSender addComponent(HighLevelComponent component);
 
 	/**
+	 * Adds an attachment to the message that will be sent.
+	 * <p>
+	 * Cannot be used on {@link ImmediateInteractionMsgSender} due to an external limitation. Attempting to do so will
+	 * throw an exception.
+	 * @param bytes Contents of the attached file
+	 * @param filename Name of the attached file
+	 * @return this
+	 */
+	public abstract MessageSender addAttachment(byte[] bytes, String filename);
+
+	/**
 	 * Sends the composed message
 	 */
 	public abstract void send();

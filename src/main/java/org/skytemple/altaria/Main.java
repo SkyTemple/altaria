@@ -32,6 +32,7 @@ import org.skytemple.altaria.features.reputation.Reputation;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.features.rules.Rules;
+import org.skytemple.altaria.features.strikes_list.StrikesList;
 import org.skytemple.altaria.features.support_points.SupportPoints;
 import org.skytemple.altaria.utils.Utils;
 
@@ -58,6 +59,7 @@ public class Main {
 			Rules rules = new Rules(commandCreator);
 			AutoPunishment autoPunishment = new AutoPunishment(db, commandCreator);
 			SupportPoints supportPoints = new SupportPoints(db, commandCreator);
+			StrikesList strikesList = new StrikesList(commandCreator);
 		}
 
 		logger.info("Bot started. Invite URL: " + api.createBotInvite());
