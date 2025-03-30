@@ -27,6 +27,7 @@ import org.javacord.api.interaction.SlashCommandInteraction;
 import org.skytemple.altaria.definitions.CommandCreator;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.features.auto_punishment.AutoPunishment;
+import org.skytemple.altaria.features.fun.Fun;
 import org.skytemple.altaria.features.mod_actions.ModActions;
 import org.skytemple.altaria.features.reputation.Reputation;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
@@ -60,6 +61,7 @@ public class Main {
 			AutoPunishment autoPunishment = new AutoPunishment(db, commandCreator);
 			SupportPoints supportPoints = new SupportPoints(db, commandCreator);
 			StrikesList strikesList = new StrikesList(commandCreator);
+			Fun fun = new Fun(commandCreator);
 		}
 
 		logger.info("Bot started. Invite URL: " + api.createBotInvite());

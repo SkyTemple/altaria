@@ -23,8 +23,11 @@ import org.javacord.api.entity.DiscordEntity;
 import org.javacord.api.entity.channel.ServerThreadChannel;
 import org.javacord.api.entity.channel.ServerThreadChannelUpdater;
 import org.javacord.api.entity.channel.internal.ServerThreadChannelUpdaterDelegate;
+import org.javacord.api.entity.permission.PermissionType;
+import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.server.ArchivedThreads;
 import org.javacord.api.entity.server.Server;
+import org.javacord.api.entity.user.User;
 import org.skytemple.altaria.definitions.ErrorHandler;
 import org.skytemple.altaria.definitions.exceptions.AsyncOperationException;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
@@ -254,5 +257,21 @@ public class JavacordUtils {
 	public static Set<Long> getBannedUsersIDs() throws ExecutionException, InterruptedException {
 		Server server = ExtConfig.get().getServer();
 		return server.getBans().get().stream().map(ban -> ban.getUser().getId()).collect(Collectors.toSet());
+	}
+
+	/**
+	 * Checks if a user has at least one role that grants the specified permission.
+	 * @param user User to check permissions for
+	 * @param server Server to check permissions in
+	 * @param permission Permission to check
+	 * @return True if the given user has the given permission in the given server, false otherwise.
+	 */
+	public static boolean hasGlobalPermission(User user, Server server, PermissionType permission) {
+		for (Role role : user.getRoles(server)) {
+			if (role.getAllowedPermissions().contains(permission)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

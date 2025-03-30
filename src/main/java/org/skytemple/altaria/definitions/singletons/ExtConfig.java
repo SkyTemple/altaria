@@ -45,6 +45,9 @@ public class ExtConfig {
 	private static final String ENV_BAN_CMD_CHANNEL_ID = "BAN_CMD_CHANNEL_ID";
 	private static final String ENV_STRIKE_LOG_CHANNEL_ID = "STRIKE_LOG_CHANNEL_ID";
 	private static final String ENV_SUPPORT_CHANNEL_ID = "SUPPORT_CHANNEL_ID";
+	private static final String ENV_FUN_2025_CHANNEL_ID = "FUN_2025_CHANNEL_ID";
+	private static final String ENV_FUN_2025_ROLE_ID = "FUN_2025_ROLE_ID";
+	private static final String ENV_FUN_2025_COOLDOWN = "FUN_2025_COOLDOWN";
 
 	private static final Level DEFAULT_LOG_LEVEL = Level.INFO;
 
@@ -67,6 +70,10 @@ public class ExtConfig {
 	private Long strikeLogChannelId;
 	private Long banCmdChannelId;
 	private Long supportChannelId;
+	private Boolean enableFun2025;
+	private Long fun2025ChannelId;
+	private Long fun2025RoleId;
+	private Long fun2025Cooldown;
 
 	protected ExtConfig() {
 		botToken = null;
@@ -84,6 +91,10 @@ public class ExtConfig {
 		enableStrikeTimeouts = null;
 		strikeLogChannelId = null;
 		supportChannelId = null;
+		enableFun2025 = null;
+		fun2025ChannelId = null;
+		fun2025RoleId = null;
+		fun2025Cooldown = null;
 	}
 
 	public static ExtConfig get() {
@@ -297,9 +308,46 @@ public class ExtConfig {
 		return supportChannelId;
 	}
 
+	/**
+	 * @return ID of the channel used for the Fun 2025 event, or null if it's not set
+	 */
+	public Long getFun2025ChannelId() {
+		if (enableFun2025 == null) {
+			setFun2025Values();
+		}
+		return fun2025ChannelId;
+	}
+
+	/**
+	 * @return ID of the role used for the Fun 2025 event, or null if it's not set
+	 */
+	public Long getFun2025RoleId() {
+		if (enableFun2025 == null) {
+			setFun2025Values();
+		}
+		return fun2025RoleId;
+	}
+
+	/**
+	 * @return Command cooldown for the Fun 2025 event, or 0 if it's not set
+	 */
+	public long getFun2025Cooldown() {
+		if (enableFun2025 == null) {
+			setFun2025Values();
+		}
+		return fun2025Cooldown;
+	}
+
 	private void setRulesMsgAndChannel() {
 		rulesMessageId = Env.getLong(ENV_RULES_MESSAGE_ID).orElse(null);
 		rulesChannelId = Env.getLong(ENV_RULES_CHANNEL_ID).orElse(null);
 		enableRulesCommand = rulesMessageId != null && rulesChannelId != null;
+	}
+
+	private void setFun2025Values() {
+		fun2025ChannelId = Env.getLong(ENV_FUN_2025_CHANNEL_ID).orElse(null);
+		fun2025RoleId = Env.getLong(ENV_FUN_2025_ROLE_ID).orElse(null);
+		fun2025Cooldown = Env.getLong(ENV_FUN_2025_COOLDOWN).orElse(0L);
+		enableFun2025 = fun2025ChannelId != null && fun2025RoleId != null;
 	}
 }
