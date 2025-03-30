@@ -44,9 +44,9 @@ public class StrikesList {
 	private void handleCommand(SlashCommandCreateEvent event) {
 		SlashCommandInteraction interaction = event.getSlashCommandInteraction();
 		String[] command = interaction.getFullCommandName().split(" ");
-		DelayedInteractionMsgSender sender = new DelayedInteractionMsgSender(interaction, false);
 
 		if (command[0].equals("strikeslist")) {
+			DelayedInteractionMsgSender sender = new DelayedInteractionMsgSender(interaction, false);
 			new StrikeslistCommand(sender, sender).run();
 		}
 	}

@@ -17,11 +17,13 @@
 
 package org.skytemple.altaria.definitions.senders;
 
+import org.apache.logging.log4j.Logger;
 import org.javacord.api.entity.message.component.HighLevelComponent;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.interaction.InteractionBase;
 import org.javacord.api.interaction.callback.InteractionOriginalResponseUpdater;
 import org.skytemple.altaria.definitions.exceptions.IllegalOperationException;
+import org.skytemple.altaria.utils.Utils;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -32,12 +34,19 @@ import java.util.concurrent.CompletableFuture;
 public class DelayedInteractionMsgSender extends InteractionMsgSender {
 	private final CompletableFuture<InteractionOriginalResponseUpdater> response;
 	private boolean ephemeral;
+	private final Logger logger;
 
 	/**
+	 * Creates a new delayed interaction message sender.
+	 * WARNING: This sends a respond later message to Discord!
+	 * Do not instantiate this class unless you intend to respond!
 	 * @param interaction Interaction used to send the message as an interaction response
 	 * @param ephemeral True to respond with an ephemeral message
 	 */
 	public DelayedInteractionMsgSender(InteractionBase interaction, boolean ephemeral) {
+		logger = Utils.getLogger(getClass());
+
+		logger.debug("Sending respond later interaction response");
 		response = interaction.respondLater(ephemeral);
 		this.ephemeral = ephemeral;
 	}
