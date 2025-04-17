@@ -36,6 +36,7 @@ public class SupportThreadsDB {
 		// Create the table if it doesn't exist
 		try {
 			db.updateWithReconnect("CREATE TABLE IF NOT EXISTS " + SUPPORT_THREADS_TABLE_NAME + "(" +
+				// 0 = All users in thread
 				"`user_id` BIGINT(30) UNSIGNED NOT NULL," +
 				"`thread_id` BIGINT(30) UNSIGNED NOT NULL," +
 				"`should_get_gp` BOOLEAN NOT NULL," + // Internally stored as a 1-byte integer
@@ -54,7 +55,7 @@ public class SupportThreadsDB {
 	 */
 	public boolean shouldUserGetGP(long userId, long threadId, boolean op) throws DbOperationException {
 		try (ResultSet result = new PreparedStatementBuilder(db, "SELECT IFNULL((SELECT should_get_gp FROM " +
-			SUPPORT_THREADS_TABLE_NAME + " " + "WHERE user_id = ? AND thread_id = ?), 2)")
+			SUPPORT_THREADS_TABLE_NAME + " WHERE user_id = ? AND thread_id = ?), 2)")
 			.setLong(userId)
 			.setLong(threadId)
 			.executeQuery()) {
@@ -67,6 +68,25 @@ public class SupportThreadsDB {
 				case 2 -> !op;
 				default -> throw new DbOperationException("Invalid should_get_gp result: " + resValue);
 			};
+		} catch (SQLException e) {
+			throw new DbOperationException(e);
+		}
+	}
+
+	/**
+	 * Determines if GP should be awarded for messages in a given support thread
+	 * @param threadId ID of the thread to check
+	 * @return True if users should get support GP on this thread
+	 */
+	public boolean supportGpEnabledInThread(long threadId) throws DbOperationException {
+		try (ResultSet result = new PreparedStatementBuilder(db, "SELECT IFNULL((SELECT should_get_gp FROM " +
+			SUPPORT_THREADS_TABLE_NAME + " WHERE user_id = 0 AND thread_id = ?), 1)")
+			.setLong(threadId)
+			.executeQuery()) {
+			result.next();
+			int resValue = result.getInt(1);
+
+			return resValue == 1;
 		} catch (SQLException e) {
 			throw new DbOperationException(e);
 		}
@@ -124,6 +144,28 @@ public class SupportThreadsDB {
 	}
 
 	/**
+	 * Sets whether the users should get GP for their messages in the specified support thread
+	 * @param threadId Thread ID
+	 * @param shouldGetGp True if users should get GP on the specified thread, false if they shouldn't
+	 */
+	public void setThreadSupportGp(long threadId, boolean shouldGetGp) throws DbOperationException {
+		if (shouldGetGp) {
+			// Default behavior, remove the entry to save DB space
+			new PreparedStatementBuilder(db, "DELETE FROM " + SUPPORT_THREADS_TABLE_NAME +
+				" WHERE user_id = 0 AND thread_id = ?")
+				.setLong(threadId)
+				.executeUpdate();
+		} else {
+			new PreparedStatementBuilder(db, "INSERT INTO " + SUPPORT_THREADS_TABLE_NAME + "(user_id, thread_id, " +
+				"should_get_gp) VALUES(?, ?, ?)")
+				.setLong(0L)
+				.setLong(threadId)
+				.setInt(0)
+				.executeUpdate();
+		}
+	}
+
+	/**
 	 * Returns the ID of the users with "should get GP" overries in the specified thread
 	 * @param threadId Thread ID
 	 * @param shouldGetGp True to get the users who should always get GP for their messages on the specified thread,
@@ -134,7 +176,7 @@ public class SupportThreadsDB {
 		List<Long> res = new ArrayList<>();
 		int shouldGetGpInt = shouldGetGp ? 1 : 0;
 		try (ResultSet result = new PreparedStatementBuilder(db, "SELECT user_id FROM " + SUPPORT_THREADS_TABLE_NAME +
-			" WHERE thread_id = ? AND should_get_gp = ?")
+			" WHERE thread_id = ? AND should_get_gp = ? AND user_id != 0")
 			.setLong(threadId)
 			.setInt(shouldGetGpInt)
 			.executeQuery()) {

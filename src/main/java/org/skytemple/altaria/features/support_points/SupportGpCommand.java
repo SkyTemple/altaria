@@ -57,6 +57,13 @@ public abstract class SupportGpCommand implements Command {
 		// Number of messages for each user
 		Map<Long, Integer> userMessages = new TreeMap<>();
 
+		long threadId = thread.getId();
+
+		if (!sdb.supportGpEnabledInThread(threadId)) {
+			// No one gets GP here
+			return ret;
+		}
+
 		Set<Message> messages;
 		try {
 			messages = thread.getMessagesBetween(DiscordUtils.timestampToSnowflake(startTimestamp),
@@ -75,7 +82,6 @@ public abstract class SupportGpCommand implements Command {
 			}
 		}
 
-		long threadId = thread.getId();
 		// Get the list of users who shouldn't get GP here
 		List<Long> shouldNotGetGp = sdb.getShouldNotGetGpUsers(threadId);
 		// Add OP

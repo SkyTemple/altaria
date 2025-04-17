@@ -111,7 +111,7 @@ public class SupportPoints {
 							"support GP for a user in the current thread",
 						Arrays.asList(
 							SlashCommandOption.create(SlashCommandOptionType.USER, "user", "User to enable/disable GP " +
-								"for", true),
+								"for. Default: Everyone in the current thread.", false),
 							SlashCommandOption.create(SlashCommandOptionType.CHANNEL, "thread", "Thread where GP " +
 								"should be enabled/disabled for the user. Default: Current thread.", false)
 						)
@@ -183,7 +183,7 @@ public class SupportPoints {
 				InteractionMsgSender sender = new ImmediateInteractionMsgSender(interaction);
 				CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
 
-				User user = arguments.getCachedUser("user", true);
+				User user = arguments.getCachedUser("user", false);
 				Channel channel = arguments.getChannel("thread", false);
 				if (arguments.success()) {
 					if (channel == null) {
@@ -192,9 +192,16 @@ public class SupportPoints {
 					if (channel != null) {
 						ServerThreadChannel thread = channel.asServerThreadChannel().orElse(null);
 						if (thread != null) {
-							// Not worth creating a command class to pass 7 args and call a function
-							supportGpSwitcher.showSupportGpSwitchMenu(thread, user.getId(), user.getName(), cmdUserId,
-								sender, sender);
+							if (user != null) {
+								// Switch for a single user in this thread
+
+								// Not worth creating a command class to pass 7 args and call a function
+								supportGpSwitcher.showUserSupportGpSwitchMenu(thread, user.getId(), user.getName(),
+									cmdUserId, sender, sender);
+							} else {
+								// Switch for all users in this thread
+								supportGpSwitcher.showThreadSupportGpSwitchMenu(thread, cmdUserId, sender, sender);
+							}
 						} else {
 							sender.setEphemeral().send("Error: Specified channel is not a thread");
 						}
@@ -291,7 +298,7 @@ public class SupportPoints {
 					long cmdUserId = interaction.getUser().getId();
 					long authorId = messageAuthor.getId();
 					String authorName = messageAuthor.getName();
-					supportGpSwitcher.showSupportGpSwitchMenu(thread, authorId, authorName, cmdUserId, sender, sender);
+					supportGpSwitcher.showUserSupportGpSwitchMenu(thread, authorId, authorName, cmdUserId, sender, sender);
 				} else {
 					sender.setEphemeral().send("Error: This action can only be used in support threads.");
 				}
