@@ -36,8 +36,9 @@ services:
     depends_on:
       - db
   db:
-    image: mysql
-    command: --default-authentication-plugin=mysql_native_password
+    # TODO: Auth method has changed in mysql 9.0. Figure out how to get it working.
+    image: mysql:8.4.0
+    command: --mysql-native-password=ON
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "altaria"
