@@ -48,6 +48,8 @@ public class ExtConfig {
 	private static final String ENV_FUN_2025_CHANNEL_ID = "FUN_2025_CHANNEL_ID";
 	private static final String ENV_FUN_2025_ROLE_ID = "FUN_2025_ROLE_ID";
 	private static final String ENV_FUN_2025_COOLDOWN = "FUN_2025_COOLDOWN";
+	private static final String ENV_VERIFIED_USER_ROLE_ID = "VERIFIED_USER_ROLE_ID";
+	private static final String ENV_VERIFIED_USER_MESSAGE_THRESHOLD = "VERIFIED_USER_MESSAGE_THRESHOLD";
 
 	private static final Level DEFAULT_LOG_LEVEL = Level.INFO;
 
@@ -74,6 +76,9 @@ public class ExtConfig {
 	private Long fun2025ChannelId;
 	private Long fun2025RoleId;
 	private Long fun2025Cooldown;
+	private Boolean enableUserVerification;
+	private Long verifiedUserRoleId;
+	private Integer verifiedUserMessageThreshold;
 
 	protected ExtConfig() {
 		botToken = null;
@@ -95,6 +100,9 @@ public class ExtConfig {
 		fun2025ChannelId = null;
 		fun2025RoleId = null;
 		fun2025Cooldown = null;
+		enableUserVerification = null;
+		verifiedUserRoleId = null;
+		verifiedUserMessageThreshold = null;
 	}
 
 	public static ExtConfig get() {
@@ -338,6 +346,26 @@ public class ExtConfig {
 		return fun2025Cooldown;
 	}
 
+	/*+
+	 * @return ID of the role that should be given to verified users, or null if the feature is not enabled.
+	 */
+	public Long getVerifiedUserRoleId() {
+		if (enableUserVerification == null) {
+			setUserVerificationValues();
+		}
+		return verifiedUserRoleId;
+	}
+
+	/*+
+	 * @return Number of messages a user must post to be considered verified, or null if the feature is not enabled.
+	 */
+	public Integer getVerifiedMessageThreshold() {
+		if (enableUserVerification == null) {
+			setUserVerificationValues();
+		}
+		return verifiedUserMessageThreshold;
+	}
+
 	private void setRulesMsgAndChannel() {
 		rulesMessageId = Env.getLong(ENV_RULES_MESSAGE_ID).orElse(null);
 		rulesChannelId = Env.getLong(ENV_RULES_CHANNEL_ID).orElse(null);
@@ -349,5 +377,11 @@ public class ExtConfig {
 		fun2025RoleId = Env.getLong(ENV_FUN_2025_ROLE_ID).orElse(null);
 		fun2025Cooldown = Env.getLong(ENV_FUN_2025_COOLDOWN).orElse(0L);
 		enableFun2025 = fun2025ChannelId != null && fun2025RoleId != null;
+	}
+
+	private void setUserVerificationValues() {
+		verifiedUserRoleId = Env.getLong(ENV_VERIFIED_USER_ROLE_ID).orElse(null);
+		verifiedUserMessageThreshold = Env.getInt(ENV_VERIFIED_USER_MESSAGE_THRESHOLD).orElse(null);
+		enableUserVerification = verifiedUserRoleId != null && verifiedUserMessageThreshold != null;
 	}
 }

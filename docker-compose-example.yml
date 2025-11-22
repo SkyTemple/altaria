@@ -33,6 +33,11 @@ services:
       BAN_CMD_CHANNEL_ID: "..."
       # Channel where GP is awarded for contributions.
       SUPPORT_CHANNEL_ID: "..."
+      # ID of the role to give users who post enough messages to be considered verified. Leave blank to
+      # disable the feature.
+      VERIFIED_USER_ROLE_ID: "..."
+      # Number of messages a user has to send to be given the verified role.
+      VERIFIED_USER_MESSAGE_THRESHOLD: "..."
     depends_on:
       - db
   db:

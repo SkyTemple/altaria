@@ -35,6 +35,7 @@ import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.features.rules.Rules;
 import org.skytemple.altaria.features.strikes_list.StrikesList;
 import org.skytemple.altaria.features.support_points.SupportPoints;
+import org.skytemple.altaria.features.verification.Verification;
 import org.skytemple.altaria.utils.Utils;
 
 public class Main {
@@ -53,7 +54,7 @@ public class Main {
 		// Register a listener to log commands
 		api.addSlashCommandCreateListener(Main::logCommand);
 
-		// Create functional classes. A CommandCreator is used to bulk create the bot's commands.
+		// Create functional classes. A CommandCreator is used to bulk create all bot commands.
 		try (CommandCreator commandCreator = new CommandCreator()){
 			Reputation reputation = new Reputation(db, commandCreator);
 			ModActions modActions = new ModActions(commandCreator);
@@ -62,6 +63,7 @@ public class Main {
 			SupportPoints supportPoints = new SupportPoints(db, commandCreator);
 			StrikesList strikesList = new StrikesList(commandCreator);
 			Fun fun = new Fun(commandCreator);
+			Verification verification = new Verification();
 		}
 
 		logger.info("Bot started. Invite URL: " + api.createBotInvite());
