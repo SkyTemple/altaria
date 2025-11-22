@@ -76,26 +76,20 @@ public class Verification {
 
 		if (!user.getRoles(server).contains(verifiedRole)) {
 			synchronized (this) {
-				if (messageCounts.containsKey(user.getId())) {
-					int messageCount = messageCounts.get(user.getId()) + 1;
+                int messageCount = messageCounts.getOrDefault(user.getId(), 0) + 1;
 
-					if (messageCount >= requiredPosts) {
-						// User has enough messages to be verified, give them the role and remove them from the map
-						try {
-							user.addRole(verifiedRole).join();
-							messageCounts.remove(user.getId());
-						} catch (CompletionException e) {
-							new ErrorHandler(e).printToErrorChannel().run();
-						}
-					} else {
-						// Not enough messages yet, store the new count
-						messageCounts.put(user.getId(), messageCount);
-					}
-
-				} else {
-					// New user, start tracking their message count
-					messageCounts.put(user.getId(), 1);
-				}
+                if (messageCount >= requiredPosts) {
+                    // User has enough messages to be verified, give them the role and remove them from the map
+                    try {
+                        user.addRole(verifiedRole).join();
+                        messageCounts.remove(user.getId());
+                    } catch (CompletionException e) {
+                        new ErrorHandler(e).printToErrorChannel().run();
+                    }
+                } else {
+                    // Not enough messages yet, store the new count
+                    messageCounts.put(user.getId(), messageCount);
+                }
 			}
 		}
 	}
