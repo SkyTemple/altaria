@@ -2,11 +2,15 @@ package org.skytemple.altaria.features.verification;
 
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
+import org.javacord.api.entity.channel.ServerChannel;
+import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.skytemple.altaria.definitions.ErrorHandler;
+import org.skytemple.altaria.definitions.senders.ChannelMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
 import org.skytemple.altaria.definitions.singletons.ExtConfig;
 import org.skytemple.altaria.utils.Utils;
@@ -33,6 +37,9 @@ public class Verification {
 	// Used to store the number of messages sent by each unverified user since the bot started
 	private final Map<Long, Integer> messageCounts;
 
+    // Number of messages skipped due to missing fields. Currently used for debugging.
+    private int skippedMessages;
+
 	public Verification() {
 		api = ApiGetter.get();
 		extConfig = ExtConfig.get();
@@ -55,6 +62,8 @@ public class Verification {
 		} else {
 			verifiedRole = null;
 		}
+
+        skippedMessages = 0;
 	}
 
 	/**
@@ -65,10 +74,31 @@ public class Verification {
 	private void handleMessage(MessageCreateEvent event) {
 		User user = event.getMessageAuthor().asUser().orElse(null);
 		Server server = event.getServer().orElse(null);
-		if (user == null || server == null) {
-			logger.warn("Ignoring message " + event.getMessageId() + " because author or server fields are null");
+		if (user == null) {
+            MessageAuthor author = event.getMessageAuthor();
+
+			logger.warn("Ignoring message " + event.getMessageId() + " because author field is null. " +
+                    "Author ID: " + author.getId() + ", author name: " + author.getName() + ", author is user: " +
+                    author.isUser() + ", author is webhook: " + author.isWebhook() + ", webhook id: " +
+                    author.getWebhookId() + ", message content: " + author.getMessage().getContent().substring(0, 50)
+            );
+            handleMessageSkip();
 			return;
-		}
+		} else if (server == null) {
+            TextChannel channel = event.getChannel();
+
+            logger.warn("Ignoring message " + event.getMessageId() + " because server field is null. " +
+                    "Channel ID: " + channel.getId() + ", channel class: " + channel.getClass() +
+                    ", as server channel: " +
+                    channel.asServerChannel().map(ServerChannel::getId).orElse(null) +
+                    ", server ID: " +
+                    channel.asServerChannel().map(ServerChannel::getServer).map(Server::getId).orElse(null)
+            );
+            handleMessageSkip();
+            return;
+        }
+
+
         if (server != this.server) {
             // Message is from another server, ignore
             return;
@@ -93,4 +123,12 @@ public class Verification {
 			}
 		}
 	}
+
+    private void handleMessageSkip() {
+        skippedMessages++;
+        if (skippedMessages == 10 || skippedMessages == 25 || skippedMessages == 50 || skippedMessages % 100 == 0) {
+            new ChannelMsgSender(981189363629182996L).send("Skipped messages when assigning verification roles: " +
+                    skippedMessages + ". If this gets too high, verification is broken, ask Frost to investigate.");
+        }
+    }
 }
