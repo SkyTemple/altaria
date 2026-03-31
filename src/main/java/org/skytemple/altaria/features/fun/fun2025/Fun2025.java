@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025. Frostbyte and other contributors.
+ * Copyright (c) 2025-2026. Frostbyte and other contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.skytemple.altaria.features.fun;
+package org.skytemple.altaria.features.fun.fun2025;
 
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.permission.PermissionType;
@@ -40,7 +40,7 @@ import java.util.Collections;
 /**
  * Implements the April Fools 2025 commands
  */
-public class Fun {
+public class Fun2025 {
 	private final DiscordApi api;
 	private final ExtConfig extConfig;
 	private final Long channelId;
@@ -49,7 +49,7 @@ public class Fun {
 
 	private final CommandCooldown infectCommandCooldown;
 
-	public Fun(CommandCreator commandCreator) {
+	public Fun2025(CommandCreator commandCreator) {
 		api = ApiGetter.get();
 		extConfig = ExtConfig.get();
 		channelId = extConfig.getFun2025ChannelId();

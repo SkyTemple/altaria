@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025. Frostbyte and other contributors.
+ * Copyright (c) 2023-2026. Frostbyte and other contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.skytemple.altaria.features.fun;
+package org.skytemple.altaria.features.fun.fun2025;
 
 import org.javacord.api.entity.channel.Channel;
 import org.javacord.api.entity.channel.TextChannel;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024. Frostbyte and other contributors.
+ * Copyright (c) 2023-2026. Frostbyte and other contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -27,7 +27,7 @@ import org.javacord.api.interaction.SlashCommandInteraction;
 import org.skytemple.altaria.definitions.CommandCreator;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.features.auto_punishment.AutoPunishment;
-import org.skytemple.altaria.features.fun.Fun;
+import org.skytemple.altaria.features.fun.fun2025.Fun2025;
 import org.skytemple.altaria.features.mod_actions.ModActions;
 import org.skytemple.altaria.features.reputation.Reputation;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
@@ -62,7 +62,7 @@ public class Main {
 			AutoPunishment autoPunishment = new AutoPunishment(db, commandCreator);
 			SupportPoints supportPoints = new SupportPoints(db, commandCreator);
 			StrikesList strikesList = new StrikesList(commandCreator);
-			Fun fun = new Fun(commandCreator);
+			Fun2025 fun2025 = new Fun2025(commandCreator);
 			Verification verification = new Verification();
 		}
 
