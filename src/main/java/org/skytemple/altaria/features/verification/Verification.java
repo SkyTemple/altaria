@@ -27,8 +27,8 @@ public class Verification {
 	private final ExtConfig extConfig;
 	private final Logger logger;
 
-    // Server where the verification role will be given to users
-    private final Server server;
+	// Server where the verification role will be given to users
+	private final Server server;
 	// Role given to verified users
 	private final Role verifiedRole;
 	// Number of messages a user has to post to be considered verified
@@ -37,15 +37,15 @@ public class Verification {
 	// Used to store the number of messages sent by each unverified user since the bot started
 	private final Map<Long, Integer> messageCounts;
 
-    // Number of messages skipped due to missing fields. Currently used for debugging.
-    private int skippedMessages;
+	// Number of messages skipped due to missing fields. Currently used for debugging.
+	private int skippedMessages;
 
 	public Verification() {
 		api = ApiGetter.get();
 		extConfig = ExtConfig.get();
 		logger = Utils.getLogger(getClass());
 
-        server = extConfig.getServer();
+		server = extConfig.getServer();
 		Long roleId = extConfig.getVerifiedUserRoleId();
 		requiredPosts = extConfig.getVerifiedMessageThreshold();
 
@@ -63,72 +63,80 @@ public class Verification {
 			verifiedRole = null;
 		}
 
-        skippedMessages = 0;
+		skippedMessages = 0;
 	}
 
 	/**
 	 * Triggered when a new message is posted. If the user who posted it is not verified and their new total message
 	 * count reaches the required threshold, gives them the verified user role.
+	 *
 	 * @param event Messsage creation event
 	 */
 	private void handleMessage(MessageCreateEvent event) {
-		User user = event.getMessageAuthor().asUser().orElse(null);
+		MessageAuthor author = event.getMessageAuthor();
+		if (author.isBotUser() || author.isWebhook()) {
+			// Ignore
+			return;
+		}
+
+		User user = author.asUser().orElse(null);
 		Server server = event.getServer().orElse(null);
 		if (user == null) {
-            MessageAuthor author = event.getMessageAuthor();
+			String messageContent = author.getMessage().getContent();
+			String trimmedMessage = messageContent.length() <= 50 ? messageContent : messageContent.substring(0, 50);
 
 			logger.warn("Ignoring message " + event.getMessageId() + " because author field is null. " +
-                    "Author ID: " + author.getId() + ", author name: " + author.getName() + ", author is user: " +
-                    author.isUser() + ", author is webhook: " + author.isWebhook() + ", webhook id: " +
-                    author.getWebhookId() + ", message content: " + author.getMessage().getContent().substring(0, 50)
-            );
-            handleMessageSkip();
+				"Author ID: " + author.getId() + ", author name: " + author.getName() + ", author is user: " +
+				author.isUser() + ", author is webhook: " + author.isWebhook() + ", webhook id: " +
+				author.getWebhookId().orElse(null) + ", message content: " + trimmedMessage
+			);
+			handleMessageSkip();
 			return;
 		} else if (server == null) {
-            TextChannel channel = event.getChannel();
+			TextChannel channel = event.getChannel();
 
-            logger.warn("Ignoring message " + event.getMessageId() + " because server field is null. " +
-                    "Channel ID: " + channel.getId() + ", channel class: " + channel.getClass() +
-                    ", as server channel: " +
-                    channel.asServerChannel().map(ServerChannel::getId).orElse(null) +
-                    ", server ID: " +
-                    channel.asServerChannel().map(ServerChannel::getServer).map(Server::getId).orElse(null)
-            );
-            handleMessageSkip();
-            return;
-        }
+			logger.warn("Ignoring message " + event.getMessageId() + " because server field is null. " +
+				"Channel ID: " + channel.getId() + ", channel class: " + channel.getClass() +
+				", as server channel: " +
+				channel.asServerChannel().map(ServerChannel::getId).orElse(null) +
+				", server ID: " +
+				channel.asServerChannel().map(ServerChannel::getServer).map(Server::getId).orElse(null)
+			);
+			handleMessageSkip();
+			return;
+		}
 
 
-        if (server != this.server) {
-            // Message is from another server, ignore
-            return;
-        }
+		if (server != this.server) {
+			// Message is from another server, ignore
+			return;
+		}
 
 		if (!user.getRoles(server).contains(verifiedRole)) {
 			synchronized (this) {
-                int messageCount = messageCounts.getOrDefault(user.getId(), 0) + 1;
+				int messageCount = messageCounts.getOrDefault(user.getId(), 0) + 1;
 
-                if (messageCount >= requiredPosts) {
-                    // User has enough messages to be verified, give them the role and remove them from the map
-                    try {
-                        user.addRole(verifiedRole).join();
-                        messageCounts.remove(user.getId());
-                    } catch (CompletionException e) {
-                        new ErrorHandler(e).printToErrorChannel().run();
-                    }
-                } else {
-                    // Not enough messages yet, store the new count
-                    messageCounts.put(user.getId(), messageCount);
-                }
+				if (messageCount >= requiredPosts) {
+					// User has enough messages to be verified, give them the role and remove them from the map
+					try {
+						user.addRole(verifiedRole).join();
+						messageCounts.remove(user.getId());
+					} catch (CompletionException e) {
+						new ErrorHandler(e).printToErrorChannel().run();
+					}
+				} else {
+					// Not enough messages yet, store the new count
+					messageCounts.put(user.getId(), messageCount);
+				}
 			}
 		}
 	}
 
-    private void handleMessageSkip() {
-        skippedMessages++;
-        if (skippedMessages == 10 || skippedMessages == 25 || skippedMessages == 50 || skippedMessages % 100 == 0) {
-            new ChannelMsgSender(981189363629182996L).send("Skipped messages when assigning verification roles: " +
-                    skippedMessages + ". If this gets too high, verification is broken, ask Frost to investigate.");
-        }
-    }
+	private void handleMessageSkip() {
+		skippedMessages++;
+		if (skippedMessages == 10 || skippedMessages == 25 || skippedMessages == 50 || skippedMessages % 100 == 0) {
+			new ChannelMsgSender(981189363629182996L).send("Skipped messages when assigning verification roles: " +
+				skippedMessages + ". If this gets too high, verification is broken, ask Frost to investigate.");
+		}
+	}
 }
