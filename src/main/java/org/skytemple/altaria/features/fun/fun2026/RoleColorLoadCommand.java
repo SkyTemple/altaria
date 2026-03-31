@@ -28,10 +28,8 @@ import org.skytemple.altaria.definitions.senders.MessageSender;
 
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -75,15 +73,18 @@ public class RoleColorLoadCommand implements Command {
 
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-		for (Map.Entry<Long, Color> entry : colorMap.entrySet()) {
-			Role role = server.getRoleById(entry.getKey()).orElse(null);
+		for (Role role : server.getRoles()) {
+			Color savedColor = colorMap.get(role.getId());
+			Color currentColor = role.getColor().orElse(null);
 
-			if (role == null) {
-				// Role no longer exists, skip
-				continue;
+			if (!Objects.equals(currentColor, savedColor)) {
+				if (savedColor == null) {
+					// Role did not have a color when the dump was created, reset it
+					futures.add(role.updateColor(new Color(0, 0, 0)));
+				} else {
+					futures.add(role.updateColor(savedColor));
+				}
 			}
-
-			futures.add(role.updateColor(entry.getValue()));
 		}
 
 		try {
@@ -95,8 +96,7 @@ public class RoleColorLoadCommand implements Command {
 
 		if (failureCount == 0) {
 			if (successCount == 0) {
-				resultSender.send("Color not updated for any of the roles. This can happen if all the roles in " +
-					"the provided list were deleted.");
+				resultSender.send("No roles were updated as all of them were unchanged.");
 			} else {
 				resultSender.send("Successfully updated the color of " + successCount + " roles.");
 			}
