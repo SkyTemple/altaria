@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024. Frostbyte and other contributors.
+ * Copyright (c) 2023-2026. Frostbyte and other contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -38,6 +38,7 @@ public class DelayedInteractionMsgSender extends InteractionMsgSender {
 
 	/**
 	 * Creates a new delayed interaction message sender.
+	 * <p>
 	 * WARNING: This sends a respond later message to Discord!
 	 * Do not instantiate this class unless you intend to respond!
 	 * @param interaction Interaction used to send the message as an interaction response

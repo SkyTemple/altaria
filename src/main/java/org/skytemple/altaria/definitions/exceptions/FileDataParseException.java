@@ -15,20 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.skytemple.altaria.definitions;
+package org.skytemple.altaria.definitions.exceptions;
 
 /**
- * Stores global constants
+ * Thrown when invalid data is read from an input file.
  */
-public class Constants {
-	// Maximum allowed characters for a Discord message
-	public static final int MAX_DISCORD_MSG_CHARS = 2000;
-	// Maximum slowmode delay allowed by Discord
-	public static final int MAX_SLOWMODE_TIME = 21600;
-	// Time to wait for an action to complete before aborting. Used when responding to interactions, since they
-	// currently have a maximum response time of 3 seconds.
-	public static final int ACTION_TIMEOUT = 2;
-	public static final long VORTEX_ID = 240254129333731328L;
-	// Maximum number of roles to display when a partial role name matches multiple roles
-	public static final int MAX_ROLE_MATCHES = 15;
+public class FileDataParseException extends Exception {
+	public FileDataParseException(String message) {
+		super(message);
+	}
+
+	public FileDataParseException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public FileDataParseException(Throwable cause) {
+		super(cause);
+	}
 }

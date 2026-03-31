@@ -28,6 +28,7 @@ import org.skytemple.altaria.definitions.CommandCreator;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.features.auto_punishment.AutoPunishment;
 import org.skytemple.altaria.features.fun.fun2025.Fun2025;
+import org.skytemple.altaria.features.fun.fun2026.Fun2026;
 import org.skytemple.altaria.features.mod_actions.ModActions;
 import org.skytemple.altaria.features.reputation.Reputation;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
@@ -63,6 +64,7 @@ public class Main {
 			SupportPoints supportPoints = new SupportPoints(db, commandCreator);
 			StrikesList strikesList = new StrikesList(commandCreator);
 			Fun2025 fun2025 = new Fun2025(commandCreator);
+			Fun2026 fun2026 = new Fun2026(db, commandCreator);
 			Verification verification = new Verification();
 		}
 
