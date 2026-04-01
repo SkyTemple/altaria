@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
  * Implements the April Fools 2026 commands
  */
 public class Fun2026 {
-	private static final Pattern HEX_COLOR_REGEX = Pattern.compile("#?([0-9A-F]{6})");
+	private static final Pattern HEX_COLOR_REGEX = Pattern.compile("#?([0-9A-Fa-f]{6})");
 	private static final int DEFAULT_COST_HALF_LIFE_MINUTES = 30;
 	private static final int MAX_PENDING_RECOLOR_ACTIONS = 50;
 	private static final int COMMAND_COOLDOWN_SECONDS = 5 * 60;
