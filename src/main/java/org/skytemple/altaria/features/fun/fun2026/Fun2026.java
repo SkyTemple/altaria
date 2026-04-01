@@ -43,6 +43,7 @@ import java.awt.*;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Random;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 import java.util.regex.Matcher;
@@ -67,6 +68,7 @@ public class Fun2026 {
 	// Pending actions (confirmed by pressing an UI button)
 	private final ButtonActionList<RecolorButtonAction> actionList;
 	private final CommandCooldown commandCooldown;
+	private final Random random;
 
 	public Fun2026(Database db, CommandCreator commandCreator) {
 		api = ApiGetter.get();
@@ -76,6 +78,7 @@ public class Fun2026 {
 		recolorCosts = new RoleRecolorCosts(DEFAULT_COST_HALF_LIFE_MINUTES);
 		actionList = new ButtonActionList<>(RECOLOR_ROLE_BUTTON_ID, MAX_PENDING_RECOLOR_ACTIONS);
 		commandCooldown = new CommandCooldown();
+		random = new Random();
 
 		// Register commands
 		commandCreator.registerCommand(
@@ -157,7 +160,11 @@ public class Fun2026 {
 					Color color;
 
 					Matcher regexMatcher = HEX_COLOR_REGEX.matcher(colorOrRole);
-					if (regexMatcher.matches()) {
+					if (colorOrRole.equalsIgnoreCase("random")) {
+						// Set to random color
+						color = new Color(random.nextFloat(), random.nextFloat(), random.nextFloat());
+						roleToCopyFrom = null;
+					} else if (regexMatcher.matches()) {
 						// Set color to the one specified as a hex string
 						color = Color.decode("#" + regexMatcher.group(1));
 						roleToCopyFrom = null;
