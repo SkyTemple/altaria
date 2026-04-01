@@ -20,16 +20,14 @@ package org.skytemple.altaria.features.fun.fun2026;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.Attachment;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
+import org.javacord.api.entity.permission.PermissionType;
 import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.interaction.MessageComponentCreateEvent;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.interaction.*;
-import org.skytemple.altaria.definitions.ButtonActionList;
-import org.skytemple.altaria.definitions.CommandArgumentList;
-import org.skytemple.altaria.definitions.CommandCreator;
-import org.skytemple.altaria.definitions.ErrorHandler;
+import org.skytemple.altaria.definitions.*;
 import org.skytemple.altaria.definitions.db.Database;
 import org.skytemple.altaria.definitions.db.ReputationDB;
 import org.skytemple.altaria.definitions.exceptions.DbOperationException;
@@ -38,8 +36,11 @@ import org.skytemple.altaria.definitions.role_matcher.RoleMatcher;
 import org.skytemple.altaria.definitions.senders.DelayedInteractionMsgSender;
 import org.skytemple.altaria.definitions.senders.ImmediateInteractionMsgSender;
 import org.skytemple.altaria.definitions.singletons.ApiGetter;
+import org.skytemple.altaria.utils.DurationFormatter;
+import org.skytemple.altaria.utils.JavacordUtils;
 
 import java.awt.*;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CancellationException;
@@ -54,6 +55,7 @@ public class Fun2026 {
 	private static final Pattern HEX_COLOR_REGEX = Pattern.compile("#?([0-9A-F]{6})");
 	private static final int DEFAULT_COST_HALF_LIFE_MINUTES = 30;
 	private static final int MAX_PENDING_RECOLOR_ACTIONS = 50;
+	private static final int COMMAND_COOLDOWN_SECONDS = 5 * 60;
 	private static final String RECOLOR_ROLE_BUTTON_ID = "fun2026RecolorRole";
 
 	private final DiscordApi api;
@@ -64,6 +66,7 @@ public class Fun2026 {
 	private final RoleRecolorCosts recolorCosts;
 	// Pending actions (confirmed by pressing an UI button)
 	private final ButtonActionList<RecolorButtonAction> actionList;
+	private final CommandCooldown commandCooldown;
 
 	public Fun2026(Database db, CommandCreator commandCreator) {
 		api = ApiGetter.get();
@@ -72,6 +75,7 @@ public class Fun2026 {
 
 		recolorCosts = new RoleRecolorCosts(DEFAULT_COST_HALF_LIFE_MINUTES);
 		actionList = new ButtonActionList<>(RECOLOR_ROLE_BUTTON_ID, MAX_PENDING_RECOLOR_ACTIONS);
+		commandCooldown = new CommandCooldown();
 
 		// Register commands
 		commandCreator.registerCommand(
@@ -121,8 +125,10 @@ public class Fun2026 {
 		CommandArgumentList arguments = new CommandArgumentList(interaction, sender);
 
 		if (command[0].equals("rolecolor")) {
-			if (interaction.getServer().isEmpty()) {
+			Server server = interaction.getServer().orElse(null);
+			if (server == null) {
 				sender.send("Error: This command can only be used in a server.");
+				return;
 			}
 
 			User user = interaction.getUser();
@@ -130,7 +136,7 @@ public class Fun2026 {
 			String colorOrRole = arguments.getString("color_or_role", false);
 
 			if (arguments.success()) {
-				RoleMatcher roleMatcher = new RoleMatcher(interaction.getServer().get());
+				RoleMatcher roleMatcher = new RoleMatcher(server);
 				RoleMatch firstRoleMatch = roleMatcher.findRole(roleName);
 
 				if (firstRoleMatch.getNumMatches() != 1) {
@@ -142,7 +148,8 @@ public class Fun2026 {
 				int cost = recolorCosts.getCost(roleToUpdate.getId());
 
 				if (colorOrRole == null) {
-					sender.setEphemeral().send("Current cost to recolor the **" + roleToUpdate.getName() + "** role: " +
+					// Return current cost only
+					sender.send("Current cost to recolor the **" + roleToUpdate.getName() + "** role: " +
 						cost + " GP.");
 				} else {
 					// Actually run the command
@@ -166,6 +173,16 @@ public class Fun2026 {
 						roleToCopyFrom = secondRoleMatch.getFirstMatch();
 						// If the role doesn't have a color, use #000000 to clear it.
 						color = roleToCopyFrom.getColor().orElse(new Color(0, 0 ,0));
+					}
+
+					// Check cooldown
+					long cooldown = commandCooldown.remainingCooldown(user.getId());
+					if (
+						cooldown > 0 && !JavacordUtils.hasGlobalPermission(user, server, PermissionType.ADMINISTRATOR)
+					) {
+						String cooldownFormatted = new DurationFormatter(Duration.ofSeconds(cooldown)).toUserFormat();
+						sender.setEphemeral().send("You can use this command again in " + cooldownFormatted + ".");
+						return;
 					}
 
 					new RoleColorCommand(rdb, user, selfUser, roleToUpdate, color, roleToCopyFrom, cost, actionList,
@@ -192,6 +209,7 @@ public class Fun2026 {
 			Server server = interaction.getServer().orElse(null);
 
 			if (server == null) {
+				sender.send("Error: This command can only be used in a server.");
 				return;
 			}
 
@@ -265,6 +283,8 @@ public class Fun2026 {
 
 			// Update cost
 			recolorCosts.setCost(roleToUpdate.getId(), cost + 1);
+			// Update cooldown
+			commandCooldown.setCooldown(cmdUserId, COMMAND_COOLDOWN_SECONDS);
 
 			// Update user GP
 			try {
