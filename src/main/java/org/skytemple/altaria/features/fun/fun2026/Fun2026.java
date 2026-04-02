@@ -162,7 +162,9 @@ public class Fun2026 {
 					Matcher regexMatcher = HEX_COLOR_REGEX.matcher(colorOrRole);
 					if (colorOrRole.equalsIgnoreCase("random")) {
 						// Set to random color
-						color = new Color(random.nextFloat(), random.nextFloat(), random.nextFloat());
+						do {
+							color = new Color(random.nextFloat(), random.nextFloat(), random.nextFloat());
+						} while (!isColorAllowed(color));
 						roleToCopyFrom = null;
 					} else if (regexMatcher.matches()) {
 						// Set color to the one specified as a hex string
@@ -180,6 +182,12 @@ public class Fun2026 {
 						roleToCopyFrom = secondRoleMatch.getFirstMatch();
 						// If the role doesn't have a color, use #000000 to clear it.
 						color = roleToCopyFrom.getColor().orElse(new Color(0, 0 ,0));
+					}
+
+					if (!isColorAllowed(color)) {
+						// Exclude colors that are too dark to make sure they are visible (most people use dark mode)
+						sender.setEphemeral().send("Color is too dark, try something brighter.");
+						return;
 					}
 
 					// Check cooldown
@@ -322,6 +330,11 @@ public class Fun2026 {
 			}
 			sender.addEmbed(embed).send();
 		}
+	}
+
+	private boolean isColorAllowed(Color color) {
+		float brightness = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null)[2];
+		return brightness >= 0.4;
 	}
 
 	public record RecolorButtonAction(Role roleToUpdate, Color color, Role roleCopiedFrom) {}
