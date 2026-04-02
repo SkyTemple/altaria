@@ -333,7 +333,13 @@ public class Fun2026 {
 	}
 
 	private boolean isColorAllowed(Color color) {
+		if (color.equals(new Color(0, 0, 0))) {
+			// Always allow black, since it's used to reset
+			return true;
+		}
+
 		float brightness = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null)[2];
+		// Allow only if it's bright enough
 		return brightness >= 0.4;
 	}
 
