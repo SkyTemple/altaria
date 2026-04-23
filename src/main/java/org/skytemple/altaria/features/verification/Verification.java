@@ -74,6 +74,12 @@ public class Verification {
 	 */
 	private void handleMessage(MessageCreateEvent event) {
 		MessageAuthor author = event.getMessageAuthor();
+
+		if (author.getId() == 724327157425373275L && event.getChannel().getId() == 981189363629182996L) {
+			// Test log to check whether the listener is still working or not
+			logger.info("Listener is active");
+		}
+
 		if (author.isBotUser() || author.isWebhook()) {
 			// Ignore
 			return;
