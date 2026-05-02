@@ -118,8 +118,8 @@ public class Verification {
 			return;
 		}
 
-		if (!user.getRoles(server).contains(verifiedRole)) {
-			synchronized (this) {
+		synchronized (this) {
+			if (!user.getRoles(server).contains(verifiedRole)) {
 				int messageCount = messageCounts.getOrDefault(user.getId(), 0) + 1;
 
 				if (messageCount >= requiredPosts) {
