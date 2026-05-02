@@ -124,14 +124,18 @@ public class Verification {
 
 				if (messageCount >= requiredPosts) {
 					// User has enough messages to be verified, give them the role and remove them from the map
+					logger.info("User " + user.getId() + " (" + user.getName() + ") passed verification");
 					try {
 						user.addRole(verifiedRole).join();
 						messageCounts.remove(user.getId());
+						logger.info("Successfully added verified role to " + user.getId() + " (" + user.getName() + ")");
 					} catch (CompletionException e) {
 						new ErrorHandler(e).printToErrorChannel().run();
 					}
 				} else {
 					// Not enough messages yet, store the new count
+					logger.info("User " + user.getId() + " (" + user.getName() + ") - verified count: " +
+						messageCount + "/" + requiredPosts);
 					messageCounts.put(user.getId(), messageCount);
 				}
 			}
