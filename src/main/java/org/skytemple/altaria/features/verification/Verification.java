@@ -2,6 +2,7 @@ package org.skytemple.altaria.features.verification;
 
 import org.apache.logging.log4j.Logger;
 import org.javacord.api.DiscordApi;
+import org.javacord.api.entity.DiscordEntity;
 import org.javacord.api.entity.channel.ServerChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageAuthor;
@@ -21,16 +22,17 @@ import java.util.concurrent.CompletionException;
 
 /**
  * Gives members who post a certain amount of messages since the last time the bot was restarted a verified user role
+ * TODO: Remove unnecessary logging if the verification bug is fixed
  */
 public class Verification {
 	private final DiscordApi api;
 	private final ExtConfig extConfig;
 	private final Logger logger;
 
-	// Server where the verification role will be given to users
-	private final Server server;
-	// Role given to verified users
-	private final Role verifiedRole;
+	// ID of the server where the verification role will be given to users
+	private final long serverId;
+	// IF of the role given to verified users, or null if the feature is disabled
+	private final Long verifiedRoleId;
 	// Number of messages a user has to post to be considered verified
 	private final Integer requiredPosts;
 
@@ -45,22 +47,24 @@ public class Verification {
 		extConfig = ExtConfig.get();
 		logger = Utils.getLogger(getClass());
 
-		server = extConfig.getServer();
+		serverId = extConfig.getServer().getId();
 		Long roleId = extConfig.getVerifiedUserRoleId();
 		requiredPosts = extConfig.getVerifiedMessageThreshold();
 
 		messageCounts = new TreeMap<>();
 
 		if (roleId != null && requiredPosts != null) {
-			verifiedRole = api.getRoleById(roleId).orElse(null);
+			Role verifiedRole = api.getRoleById(roleId).orElse(null);
 			if (verifiedRole == null) {
 				logger.error("Cannot find verified user role (ID " + roleId + "). Feature will be disabled.");
+				verifiedRoleId = null;
 				return;
 			}
 
+			verifiedRoleId = roleId;
 			api.addMessageCreateListener(this::handleMessage);
 		} else {
-			verifiedRole = null;
+			verifiedRoleId = null;
 		}
 
 		skippedMessages = 0;
@@ -113,19 +117,29 @@ public class Verification {
 		}
 
 
-		if (server != this.server) {
+		if (server.getId() != serverId) {
 			// Message is from another server, ignore
+			logger.warn("Ignoring message " + event.getMessageId() + " because server field doesn't match current " +
+				"server. Message server ID: " + server.getId() + ", current server ID: " + serverId);
+			handleMessageSkip();
 			return;
 		}
 
 		synchronized (this) {
-			if (!user.getRoles(server).contains(verifiedRole)) {
+			if (!user.getRoles(server).stream().map(DiscordEntity::getId).toList().contains(verifiedRoleId)) {
 				int messageCount = messageCounts.getOrDefault(user.getId(), 0) + 1;
 
 				if (messageCount >= requiredPosts) {
 					// User has enough messages to be verified, give them the role and remove them from the map
 					logger.info("User " + user.getId() + " (" + user.getName() + ") passed verification");
 					try {
+						Role verifiedRole = api.getRoleById(verifiedRoleId).orElse(null);
+						if (verifiedRole == null) {
+							logger.error("Cannot find verified user role (ID " + verifiedRoleId + "). " +
+								"User " + user.getId() + " (" + user.getName() + ") will remain unverified.");
+							return;
+						}
+
 						user.addRole(verifiedRole).join();
 						messageCounts.remove(user.getId());
 						logger.info("Successfully added verified role to " + user.getId() + " (" + user.getName() + ")");
