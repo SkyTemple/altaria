@@ -78,7 +78,7 @@ public class ChannelMsgSender extends MessageSender {
 	 * @param messageToReplyTo Message to reply to
 	 * @return this
 	 */
-	public MessageSender replyTo(Message messageToReplyTo) {
+	public ChannelMsgSender replyTo(Message messageToReplyTo) {
 		message.replyTo(messageToReplyTo);
 		return this;
 	}

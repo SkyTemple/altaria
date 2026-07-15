@@ -262,7 +262,13 @@ public class Reputation {
 		if (event.getChannel().getId() == SPRITEBOT_COMMANDS_CHANNEL_ID &&
 			event.getMessageAuthor().getId() == SPRITEBOT_ID) {
 			String[] message = event.getMessage().getContent().split(" ");
-			ChannelMsgSender privateResultSender = new ChannelMsgSender(SPRITEBOT_COMMANDS_CHANNEL_ID);
+			// check if the first argument is a ping to the bot
+			if (message[0].equals("<@" + api.getYourself().getId() + ">")) {
+				// Remove the first element, which is the bot's mention
+				message = Arrays.copyOfRange(message, 1, message.length);
+			}
+			ChannelMsgSender privateResultSender = new ChannelMsgSender(SPRITEBOT_COMMANDS_CHANNEL_ID)
+				.replyTo(event.getMessage());
 
 			if (message[0].equals("!gr") || message[0].equals("!tr")) {
 				if (message.length == 4) {
