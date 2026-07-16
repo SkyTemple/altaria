@@ -263,7 +263,8 @@ public class Reputation {
 			event.getMessageAuthor().getId() == SPRITEBOT_ID) {
 			String[] message = event.getMessage().getContent().split(" ");
 			// check if the first argument is a ping to the bot
-			if (message[0].equals("<@" + api.getYourself().getId() + ">") || message[0].equals("<@!" + api.getYourself().getId() + ">")) {
+			long selfId = api.getYourself().getId();
+			if (message[0].equals("<@" + selfId + ">") || message[0].equals("<@!" + selfId + ">")) {
 				// Remove the first element, which is the bot's mention
 				message = Arrays.copyOfRange(message, 1, message.length);
 			}
